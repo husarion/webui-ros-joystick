@@ -1,0 +1,6 @@
+.vscode
+build
+devel
+log
+install
+node_modules
