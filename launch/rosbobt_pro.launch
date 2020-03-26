@@ -1,0 +1,9 @@
+<launch>
+
+    <node pkg="webui-ros-joystick" type="node_server.sh" name="node_server" output="screen"/>
+
+    <include file="$(find rosbot_ekf)/launch/all.launch">
+        <arg name="rosbot_pro" value="true"/>
+    </include>
+
+</launch>

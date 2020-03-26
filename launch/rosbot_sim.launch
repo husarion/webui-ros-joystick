@@ -1,0 +1,9 @@
+<launch>
+
+    <param name="use_sim_time" value="true"/>
+
+    <node pkg="webui-ros-joystick" type="node_server.sh" name="node_server" output="screen"/>
+
+    <include file="$(find rosbot_description)/launch/rosbot.launch"></include>
+
+</launch>

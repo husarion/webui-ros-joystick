@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>webui-ros-joystick</name>
+  <version>0.0.1</version>
+  <description>The webui-ros-joystick package allows user to send velocity commands to robot through web interface.</description>
+  <maintainer email="lukasz.mitka@husarion.com">Łukasz Mitka</maintainer>
+  <license>MIT</license>
+
+  <author email="lukasz.mitka@husarion.com">Łukasz Mitka</author>
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

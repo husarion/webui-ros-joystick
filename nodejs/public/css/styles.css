@@ -1,0 +1,12 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: Lato;
+}
+
+.joystick-container {
+  position: absolute;
+}
