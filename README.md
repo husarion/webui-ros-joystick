@@ -34,7 +34,7 @@ Install dependencies:
 
 ```bash 
 cd ~/ros_workspace/src/webui-ros-joystick/nodejs
-npm install rosnodejs express socket.io
+npm install rosnodejs express socket.io yargs
 npm install
 ```
 
