@@ -10,6 +10,7 @@ var max_joy_pos = 0;
 var timerInstance;
 var resize_tout;
 var socket;
+var alert_container;
 
 $(window).resize(function () {
     setView();
@@ -84,6 +85,22 @@ function moveAction(linear, angular) {
 
 window.onload = function () {
     console.log("onLoad triggered");
+    alert_container = document.getElementById("alerts");
     socket = io();
     setView();
+    socket.on('alert_states', function (alert_state) {
+        let alerts_section = new String();
+        alert_state.forEach((alert) => {
+            if (alert._state == 2) {
+                alerts_section += ('<div class="alert alert-warning" role="alert">');
+                alerts_section += (alert._message);
+                alerts_section += ('</div>');
+            } else if (alert._state == 3) {
+                alerts_section += ('<div class="alert alert-danger" role = "alert">');
+                alerts_section += (alert._message);
+                alerts_section += ('</div>');
+            }
+        });
+        alert_container.innerHTML = alerts_section;
+    });
 };
