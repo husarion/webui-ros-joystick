@@ -3,7 +3,8 @@
     <arg name="wait_nodes" default=""/>
     <arg name="linear_scale" default="1" />
     <arg name="angular_scale" default="1" />
+    <arg name="node_name" default="node_server"/>
 
-    <node pkg="webui-ros-joystick" type="node_server.sh" name="node_server" output="screen" args=" --wait $(arg wait_nodes) --lin $(arg linear_scale) --ang $(arg angular_scale)"/>
+    <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen" args=" --wait $(arg wait_nodes) --lin $(arg linear_scale) --ang $(arg angular_scale)"/>
 
 </launch>
