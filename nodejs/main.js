@@ -69,8 +69,10 @@ console.log("Velocities will be scaled by: [", argv.linear_scale, ", ", argv.ang
 console.log("Wait for nodes: ", argv.wait)
 
 argv.wait.forEach((wait_node) => {
-    let alert = new Alert(wait_node, ALERT_ERROR, "Waiting for " + wait_node + " node to start");
-    alerts.push(alert);
+    if (wait_node != "") {
+        let alert = new Alert(wait_node, ALERT_ERROR, "Waiting for " + wait_node + " node to start");
+        alerts.push(alert);
+    }
 })
 
 app.get('/', function (req, res) {
