@@ -1,6 +1,7 @@
-
 var joyPosY;
+var beginJoyPosY = 0;
 var joyPosX;
+var beginJoyPosX = 0;
 var manager;
 var lin;
 var ang;
@@ -57,20 +58,23 @@ function createJoystick(x, y, d) {
     };
     manager = nipplejs.create(options);
     manager.on('move', function (evt, nipple) {
-        var direction = nipple.angle.degree - 90;
-        if (direction > 180) {
-            direction = -(450 - nipple.angle.degree);
+        if (beginJoyPosX == 0 && beginJoyPosY == 0) {
+            beginJoyPosX = nipple.position.x;
+            beginJoyPosY = nipple.position.y;
+            lin = 0;
+            ang = 0;
+        } else {
+            lin = (beginJoyPosY - nipple.position.y) * 1.3 / max_joy_pos;
+            ang = (beginJoyPosX - nipple.position.x) * 1 / max_joy_pos;
         }
-        // 0,25 m/s max speed
-        // 0,5 rad/s max rotation speed
-        lin = Math.cos(direction / 57.29) * 1.3 * nipple.distance / max_joy_pos;
-        ang = Math.sin(direction / 57.29) * 1 * nipple.distance / max_joy_pos;
         clearTimeout(joystick_timeout);
         moveAction(lin, ang);
         joystick_timeout = setTimeout(function () { repeat_velcmd(lin, ang); }, velocity_repeat_delay);
     });
     manager.on('end', function () {
         clearTimeout(joystick_timeout);
+        beginJoyPosX = 0;
+        beginJoyPosY = 0;
         moveAction(0, 0);
     });
 }
