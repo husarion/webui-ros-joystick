@@ -64,8 +64,23 @@ function createJoystick(x, y, d) {
             lin = 0;
             ang = 0;
         } else {
-            lin = (beginJoyPosY - nipple.position.y) * 1.3 / max_joy_pos;
-            ang = (beginJoyPosX - nipple.position.x) * 1 / max_joy_pos;
+            let diffY = beginJoyPosY - nipple.position.y;
+            let maxY_diff = max_joy_pos - (($(window).height() / 2) - beginJoyPosY);
+            let minY_diff = max_joy_pos + (($(window).height() / 2) - beginJoyPosY);
+            let diffX = beginJoyPosX - nipple.position.x;
+            let maxX_diff = max_joy_pos - (($(window).width() / 2) - beginJoyPosX);
+            let minX_diff = max_joy_pos + (($(window).width() / 2) - beginJoyPosX);
+            if (diffY > 0) {
+                lin = diffY * 1.3 / maxY_diff;
+            } else {
+                lin = diffY * 1.3 / minY_diff;
+            }
+            if (diffX > 0) {
+                ang = diffX * 1.0 / maxX_diff;
+            } else {
+                ang = diffX * 1.0 / minX_diff;
+
+            }
         }
         clearTimeout(joystick_timeout);
         moveAction(lin, ang);
