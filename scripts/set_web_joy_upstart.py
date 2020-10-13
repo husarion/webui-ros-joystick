@@ -47,7 +47,7 @@ ROS_MASTER_URI = str(sys.argv[3])
 
 print("Configuration ->", "Hostname:", HOSTNAME, "ROS_IP:", ROS_IP,
       "ROS_MASTER_URI:", ROS_MASTER_URI)
-subprocess.call("mkdir /usr/ros", shell=True)
+subprocess.call("mkdir /etc/ros", shell=True)
 
 
 #
