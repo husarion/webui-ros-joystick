@@ -85,7 +85,7 @@ subprocess.Popen(
 #
 
 rap_service = """[Unit]
-After=NetworkManager.service time-sync.target 
+After=NetworkManager.service time-sync.target panther_driver.service
 [Service]
 Type=simple
 User={hn}
