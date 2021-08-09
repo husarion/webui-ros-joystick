@@ -48,6 +48,6 @@ jobs:
         file: ./Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/webui-ros-joystick:noetic-base-latest
-        cache-from: type=registry,ref=husarion/webui-ros-joystick:noetic-base-latest
+        tags: husarion/webui-ros-joystick:noetic-latest
+        cache-from: type=registry,ref=husarion/webui-ros-joystick:noetic-latest
         cache-to: type=inline
