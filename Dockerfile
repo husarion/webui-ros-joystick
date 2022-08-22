@@ -1,4 +1,4 @@
-FROM ros:noetic-ros-core
+FROM ros:noetic-ros-base
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -10,14 +10,8 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
     apt update && \
     apt upgrade -y && \
     apt install -y \
-        curl \
-        git \ 
         nodejs \
-        npm \
-        python3-dev \
-        python3-pip \
-        python3-rosdep \
-        python3-rospkg && \
+        npm && \
     apt autoremove -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
@@ -26,7 +20,6 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
 COPY ./webui-ros-joystick ./src/webui-ros-joystick
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
-    rosdep init && \
     rosdep update --rosdistro $ROS_DISTRO && \
     rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y && \
     cd src/webui-ros-joystick/nodejs && \
