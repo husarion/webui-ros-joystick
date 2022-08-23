@@ -1,9 +1,6 @@
-version: '3.4'
-
 services:
     webui-ros-joystick:
-        build:
-            context: ../../
+        image: husarion/webui-ros-joystick:noetic
         container_name: webui-ros-joystick
         ports:
             - 8000:8000

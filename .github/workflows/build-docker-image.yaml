@@ -3,21 +3,21 @@ name: Build/Publish Docker Image
 on:
   push:
     branches:
-      - 'docker-dev'
+      - 'master'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'tag that the image will be built with'
+        description: 'A tag that the image will be built with'
         required: true
         default: 'latest'
       branch:
-        description: 'branch that will be used to build image'
+        description: 'A branch that will be used to build the image'
         required: true
-        default: 'main'
+        default: 'master'
   
 jobs:
-  build_lights_controller:
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ubuntu-20.04
 
     steps:
         
@@ -48,6 +48,6 @@ jobs:
         file: ./Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/webui-ros-joystick:noetic-latest
-        cache-from: type=registry,ref=husarion/webui-ros-joystick:noetic-latest
+        tags: husarion/webui-ros-joystick:noetic
+        cache-from: type=registry,ref=husarion/webui-ros-joystick:noetic
         cache-to: type=inline
