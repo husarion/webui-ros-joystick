@@ -4,7 +4,7 @@
   <version>0.0.1</version>
   <description>The webui-ros-joystick package allows user to send velocity commands to robot through web interface.</description>
   <maintainer email="contact@husarion.com">Husarion</maintainer>
-  <license>MIT</license>
+  <license>Apache License 2.0</license>
 
   <author email="lukasz.mitka@husarion.com">Łukasz Mitka</author>
   <buildtool_depend>catkin</buildtool_depend>

@@ -1,66 +1,36 @@
-## About
+# webui_ros_joystick
 
 Simple browser-based joystick to send velocity commands to ROS device. Built as a [Node.js](https://nodejs.org/) application.
 
-## Installation
+---
 
-Install ROS noetic using this [guide](http://wiki.ros.org/noetic/Installation) (if you have ROS noetic installed on your machine, please proceed to create a workspace).
+## ROS node API
 
-Install [Node.js](https://nodejs.org/):
+ROS node is publishing web joystick output to `/cmd_vel` topic.
 
-```bash
-curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-sudo apt install -y nodejs
-```
 
-Create workspace, clone needed repositories and build:
+### Publish
 
-```bash
-source /opt/ros/noetic/setup.bash
-mkdir -p ~/ros_workspace/src
-cd ~/ros_workspace/src
-catkin_init_workspace 
-echo '. ~/ros_workspace/devel/setup.sh' >> ~/.bashrc
+- `/cmd_vel` *(geometry_msgs/Twist)*
 
-git clone https://github.com/husarion/rosbot_description.git
-git clone https://github.com/husarion/webui-ros-joystick.git
 
-cd ~/ros_workspace/src/webui-ros-joystick/webui-ros-joystick/nodejs
-npm install rosnodejs@3.0.2 socket.io@2.4.1 yargs@16.2.0 express@4.17.1
-npm install
+## Docker image
 
-cd ~/ros_workspace
-catkin_make
-. ~/ros_workspace/devel/setup.sh
-```
+[![Build/Publish Docker Image](https://github.com/husarion/webui-ros-joystick/actions/workflows/build-docker-image.yaml/badge.svg)](https://github.com/husarion/webui-ros-joystick/actions/workflows/build-docker-image.yaml)
 
-## How to use
+| ROS distro | Supported architectures      |
+| ---------- | ---------------------------- |
+| `noetic`   | `linux/amd64`, `linux/arm64` |
 
-The panel comes with prepared launch files for `node.js` server.
-Depending on your ROSbot version, you can start it with:
+Available on [Docker Hub](https://hub.docker.com/r/husarion/webui-ros-joystick/tags)
 
-- for ROSbot 2.0:
+### Demo
 
-    ```bash
-    roslaunch webui-ros-joystick rosbot.launch
-    ```
+Launch the webui joystick in the docker container. After launching, the `/cmd_vel` topic should be accessible on your host computer.
 
-- for ROSbot 2.0 PRO:
-
-    ```bash
-    roslaunch webui-ros-joystick rosbot_pro.launch
-    ```
-
-- for Gazebo simulator:
-
-    ```bash
-    roslaunch webui-ros-joystick rosbot_sim.launch
-    ```
-
-Once all nodes are running, go to the web browser and type in the address bar:
+Go to the `webui-ros-joystick` folder and run:
 
 ```bash
-ROSBOT_IP_ADDRESS:8000
+cd webui-ros-joystick
+docker compose up
 ```
-
-You need to substitute the phrase `ROSBOT_IP_ADDRESS` with the IP address of your device.
