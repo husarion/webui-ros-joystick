@@ -3,7 +3,7 @@ name: Build/Publish Docker Image
 on:
   push:
     branches:
-      - "master"
+      - "bugfix/workflow"
 
 jobs:
   build:
