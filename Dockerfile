@@ -24,6 +24,7 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y && \
     cd src/webui-ros-joystick/nodejs && \
     npm cache clean --force && \
+    rm -rf package-lock.json && \
     npm install rosnodejs@3.0.2 socket.io@2.4.1 yargs@16.2.0 express@4.17.1 && \
     npm install && \
     cd /ros_ws && \
