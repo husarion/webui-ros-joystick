@@ -6,12 +6,10 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /ros_ws
 
 # Update Ubuntu Software and Install components
-RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
-    apt update && \
+RUN apt update && \
     apt upgrade -y && \
     apt install -y \
         git \
-        nodejs \
         npm && \
     apt autoremove -y && \
     apt clean && \
