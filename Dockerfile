@@ -1,4 +1,4 @@
-FROM ros:noetic-ros-base
+FROM ros:noetic-ros-base AS pkg-builder
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -6,12 +6,10 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /ros_ws
 
 # Update Ubuntu Software and Install components
-RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
-    apt update && \
+RUN apt update && \
     apt upgrade -y && \
     apt install -y \
         git \
-        nodejs \
         npm && \
     apt autoremove -y && \
     apt clean && \
@@ -28,6 +26,28 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     npm install && \
     cd /ros_ws && \
     catkin_make
+
+FROM ros:noetic-ros-core
+
+# Use bash instead of sh
+SHELL ["/bin/bash", "-c"]
+
+# Install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
+    apt update && \
+    apt upgrade -y && \
+    apt install -y \
+        nodejs && \
+    apt autoremove -y && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ros_ws
+
+COPY --from=pkg-builder /ros_ws /ros_ws/
+
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc && \
+    echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
 
 COPY ./ros_entrypoint.sh /
 ENTRYPOINT [ "/ros_entrypoint.sh" ]
