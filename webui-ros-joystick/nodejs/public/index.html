@@ -15,12 +15,20 @@
 <script src="js/nipplejs.min.js"></script>
 <script src="js/joystick.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="js/e_stop_button.js"></script>
+<script src="js/update_view.js"></script>
 
 <body class="bg-light">
     <div id="alerts">
     </div>
     <div class="joystick-container">
         <div id="joystick"></div>
+    </div>
+
+    <div class="eStopContainer">
+        <input type="hidden" id="eStopInput" value="ON">
+        <button id="eStopButton" onclick="toggleButton(this)">E-STOP</button>
+        <div id="led"></div>
     </div>
 </body>
 

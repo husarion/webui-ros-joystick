@@ -10,3 +10,13 @@ body {
 .joystick-container {
   position: absolute;
 }
+
+.eStop-container {
+  position: absolute;
+}
+
+#eStopButton:disabled,
+#eStopButton[disabled]{
+  border: 1px solid #777777;
+  opacity: 0.8;
+}

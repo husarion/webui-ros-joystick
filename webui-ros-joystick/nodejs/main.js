@@ -8,10 +8,16 @@ const yargs = require("yargs");
 const rosnodejs = require("rosnodejs");
 const { inflate } = require("zlib");
 const geometry_msgs = rosnodejs.require("geometry_msgs").msg;
+const std_msgs = rosnodejs.require("std_msgs").msg;
+const std_srvs = rosnodejs.require("std_srvs").srv;
 
 const drive_msg = new geometry_msgs.Twist();
 var cmd_vel_publisher;
+var e_stop_trigger_client;
+var e_stop_clear_client;
+var e_stop_subscriber;
 var alerts = new Array();
+var e_stop = false;
 
 var Alert = function (id, state, message) {
   this._id = id;
@@ -97,10 +103,26 @@ io.on("connection", function (socket) {
     console.log("user disconnected");
   });
 
+  socket.on("e_stop_trigger", async (callback) => {
+    let success = await handleCallTriggerService('/e_stop_trigger', e_stop_trigger_client, 5000);
+    callback({
+      success: success
+    });
+  });
+
+  socket.on("e_stop_clear", async (callback) => {
+    let success = await handleCallTriggerService('/e_stop_clear', e_stop_clear_client, 5000);
+    callback({
+      success: success
+    });
+  });
+
   socket.on("drive_command", function (drive_command) {
-    drive_msg.linear.x = drive_command.lin * argv.linear_scale;
-    drive_msg.angular.z = drive_command.ang * argv.angular_scale;
-    cmd_vel_publisher.publish(drive_msg);
+    if (!e_stop) {
+      drive_msg.linear.x = drive_command.lin * argv.linear_scale;
+      drive_msg.angular.z = drive_command.ang * argv.angular_scale;
+      cmd_vel_publisher.publish(drive_msg);
+    }
   });
 });
 
@@ -111,11 +133,22 @@ http.listen(8000, function () {
 rosnodejs
   .initNode("/rosnodejs")
   .then((rosNode) => {
+
     cmd_vel_publisher = rosNode.advertise(
       "/cmd_vel",
       geometry_msgs.Twist,
       default_publisher_options
     );
+
+    e_stop_subscriber = rosNode.subscribe(
+      "/e_stop",
+      std_msgs.Bool,
+      eStopCallback
+    );
+
+    e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
+    e_stop_clear_client = rosNode.serviceClient('/e_stop_clear', std_srvs.Trigger);
+
     argv.wait.forEach((wait_node) => {
       let node_name = "/" + wait_node + "/get_loggers";
       rosNode.waitForService(node_name).then(() => {
@@ -131,3 +164,27 @@ rosnodejs
   .catch((err) => {
     rosnodejs.log.error(err.stack);
   });
+
+var eStopCallback = (msg) => {
+  e_stop = msg.data;
+  io.emit("e_stop_state", msg.data);
+}
+
+async function handleCallTriggerService(name, service, timeout) {
+  try {
+    let nh = rosnodejs.nodeHandle;
+    if (await nh.waitForService(name, timeout)) {
+      rosnodejs.log.info("Calling " + name + " service");
+      let response = await service.call();
+      rosnodejs.log.info(name + " service response: " + JSON.stringify(response));
+      return response.success;
+    }
+    else {
+      rosnodejs.log.error("Can't contact " + name + " service");
+      return false;
+    }
+  }
+  catch (error) {
+    rosnodejs.log.error(error);
+  }
+}
