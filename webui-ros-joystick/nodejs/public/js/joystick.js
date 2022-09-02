@@ -1,5 +1,3 @@
-var beginJoyPosY = 0;
-var beginJoyPosX = 0;
 var manager;
 var lin;
 var ang;
@@ -40,20 +38,12 @@ function createJoystick(pos_x, pos_y, size) {
   };
   manager = nipplejs.create(options);
   manager.on("move", function (evt, nipple) {
-    relativePosX = nipple.position.x - pos_x;
-    relativePosY = nipple.position.y - pos_y;
+    relativePosX = pos_x - nipple.position.x;
+    relativePosY = pos_y - nipple.position.y;
 
-    if (beginJoyPosX == 0 && beginJoyPosY == 0) {
-      beginJoyPosX = relativePosX;
-      beginJoyPosY = relativePosY;
-      lin = 0;
-      ang = 0;
-    } else {
-      let diffX = beginJoyPosX - relativePosX;
-      let diffY = beginJoyPosY - relativePosY;
-      ang = mapRange(diffX, - size / 2, size / 2, -1, 1);
-      lin = mapRange(diffY, - size / 2, size / 2, -1, 1);
-    }
+    ang = mapRange(relativePosX, - size / 2, size / 2, -1, 1);
+    lin = mapRange(relativePosY, - size / 2, size / 2, -1, 1);
+
     clearTimeout(joystick_timeout);
     moveAction(lin, ang);
     joystick_timeout = setTimeout(function () {
@@ -62,9 +52,9 @@ function createJoystick(pos_x, pos_y, size) {
   });
   manager.on("end", function () {
     clearTimeout(joystick_timeout);
-    beginJoyPosX = 0;
-    beginJoyPosY = 0;
-    moveAction(0, 0);
+    lin = 0;
+    ang = 0;
+    moveAction(0, 0, true);
   });
 }
 
@@ -72,10 +62,11 @@ function mapRange(value, in_min, in_max, out_min, out_max) {
   return out_min + (out_max - out_min) * (value - in_min) / (in_max - in_min);
 }
 
-function moveAction(linear, angular) {
+function moveAction(linear, angular, stop = false) {
   let command = {
     lin: linear,
     ang: angular,
+    stop: stop,
   };
   socket.emit("drive_command", command);
 }

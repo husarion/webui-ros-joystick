@@ -17,7 +17,12 @@ var e_stop_trigger_client;
 var e_stop_clear_client;
 var e_stop_subscriber;
 var alerts = new Array();
-var e_stop = false;
+let eStop = false;
+let outputLinearVel = 0;
+let outputAngularVel = 0;
+let maxLinearAccel = 1.0;
+let maxAngularAccel = 1.0;
+let lastVelocityMsgTime = 0;
 
 var Alert = function (id, state, message) {
   this._id = id;
@@ -118,9 +123,19 @@ io.on("connection", function (socket) {
   });
 
   socket.on("drive_command", function (drive_command) {
-    if (!e_stop) {
-      drive_msg.linear.x = drive_command.lin * argv.linear_scale;
-      drive_msg.angular.z = drive_command.ang * argv.angular_scale;
+    if (!eStop) {
+      if (!drive_command.stop) {
+        let commandLinearVel = drive_command.lin * argv.linear_scale;
+        let commandAngularVel = drive_command.ang * argv.angular_scale;
+        outputLinearVel = accelLimiting(outputLinearVel, commandLinearVel, maxLinearAccel);
+        outputAngularVel = accelLimiting(outputAngularVel, commandAngularVel, maxAngularAccel);
+      } else {
+        outputLinearVel = 0;
+        outputAngularVel = 0;
+      }
+      drive_msg.linear.x = outputLinearVel;
+      drive_msg.angular.z = outputAngularVel;
+      lastVelocityMsgTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
       cmd_vel_publisher.publish(drive_msg);
     }
   });
@@ -166,7 +181,7 @@ rosnodejs
   });
 
 var eStopCallback = (msg) => {
-  e_stop = msg.data;
+  eStop = msg.data;
   io.emit("e_stop_state", msg.data);
 }
 
@@ -178,8 +193,7 @@ async function handleCallTriggerService(name, service, timeout) {
       let response = await service.call();
       rosnodejs.log.info(name + " service response: " + JSON.stringify(response));
       return response.success;
-    }
-    else {
+    } else {
       rosnodejs.log.error("Can't contact " + name + " service");
       return false;
     }
@@ -187,4 +201,27 @@ async function handleCallTriggerService(name, service, timeout) {
   catch (error) {
     rosnodejs.log.error(error);
   }
+}
+
+function accelLimiting(currentVel, vel, maxAccel) {
+  let outputVel = 0;
+  let dt = 0.001;
+  let currentTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
+  if (currentVel != 0) {
+    dt = currentTime - lastVelocityMsgTime
+  }
+
+  if (vel >= currentVel) {
+    outputVel = currentVel + maxAccel * dt;
+    if (outputVel > vel) {
+      outputVel = vel;
+    }
+  } else if (vel < currentVel) {
+    outputVel = currentVel - maxAccel * dt;
+    if (outputVel < vel) {
+      outputVel = vel;
+    }
+  }
+
+  return outputVel;
 }
