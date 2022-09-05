@@ -8,7 +8,7 @@
 
   <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen" args=" --wait $(arg wait_nodes) --lin $(arg linear_scale) --ang $(arg angular_scale) --e_stop $(arg e_stop)">
     <remap from="e_stop_trigger" to="/panther_hardware/e_stop_trigger" if="$(arg e_stop)" />
-    <remap from="e_stop_clear" to="/panther_hardware/e_stop_clear" if="$(arg e_stop)" />
+    <remap from="e_stop_reset" to="/panther_hardware/e_stop_reset" if="$(arg e_stop)" />
     <remap from="e_stop" to="/panther_hardware/e_stop" if="$(arg e_stop)" />
   </node>
 

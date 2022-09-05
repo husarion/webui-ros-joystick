@@ -15,6 +15,7 @@ function createButton(posX, posY, size) {
   let button = document.getElementById("eStopButton");
   let eStopInput = document.getElementById("eStopInput");
 
+  button.hidden = false;
   button.style.width = size + "px";
   button.style.height = size + "px";
   button.style.borderWidth = "16px";
@@ -82,8 +83,8 @@ function toggleButton(button) {
     setButton(button, eStopInput, "ON");
     buttonStateChange(button, eStopInput);
   } else {
-    let eStopClear = confirm("Are you sure to disable emergency stop?");
-    if (eStopClear) {
+    let eStopReset = confirm("Are you sure to disable emergency stop?");
+    if (eStopReset) {
       setButton(button, eStopInput, "OFF");
       buttonStateChange(button, eStopInput);
     }
@@ -93,9 +94,9 @@ function toggleButton(button) {
 function buttonStateChange(button, buttonInput) {
   button.disabled = true;
   if (buttonInput.value == "OFF") {
-    socket.emit("e_stop_clear", (response) => {
+    socket.emit("e_stop_reset", (response) => {
       if (!response.success) {
-        alert("Failed to clear e-stop");
+        alert("Failed to reset e-stop");
         setButton(button, buttonInput, "ON");
       }
       button.disabled = false;

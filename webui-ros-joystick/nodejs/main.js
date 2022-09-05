@@ -14,7 +14,7 @@ const std_srvs = rosnodejs.require("std_srvs").srv;
 const drive_msg = new geometry_msgs.Twist();
 var cmd_vel_publisher;
 var e_stop_trigger_client;
-var e_stop_clear_client;
+var e_stop_reset_client;
 var e_stop_subscriber;
 var alerts = new Array();
 let eStop = false;
@@ -74,7 +74,7 @@ const argv = yargs
     alias: "e_stop",
     default: false,
     description: "Spawn e-stop button",
-    type: "bool",
+    type: "boolean",
   })
   .help()
   .alias("help", "h")
@@ -123,8 +123,8 @@ io.on("connection", function (socket) {
     });
   });
 
-  socket.on("e_stop_clear", async (callback) => {
-    let success = await handleCallTriggerService('/e_stop_clear', e_stop_clear_client, 5000);
+  socket.on("e_stop_reset", async (callback) => {
+    let success = await handleCallTriggerService('/e_stop_reset', e_stop_reset_client, 5000);
     callback({
       success: success
     });
@@ -171,7 +171,7 @@ rosnodejs
       );
   
       e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
-      e_stop_clear_client = rosNode.serviceClient('/e_stop_clear', std_srvs.Trigger);
+      e_stop_reset_client = rosNode.serviceClient('/e_stop_reset', std_srvs.Trigger);
     }
 
     argv.wait.forEach((wait_node) => {
