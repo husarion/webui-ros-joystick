@@ -1,8 +1,10 @@
+let offset = 0;
+let create_e_stop = false;
+
 window.onload = function () {
     console.log("onLoad triggered");
     alert_container = document.getElementById("alerts");
     socket = io();
-    setView();
     socket.on("alert_states", function (alert_state) {
         let alerts_section = new String();
         alert_state.forEach((alert) => {
@@ -19,22 +21,36 @@ window.onload = function () {
         alert_container.innerHTML = alerts_section;
     });
 
-    socket.on("e_stop_state", function (state) {
-        let led = document.getElementById("led");
-        let button = document.getElementById("eStopButton");
-        let buttonInput = document.getElementById("eStopInput");
+    socket.on("create_e_stop", function (state) {
+        create_e_stop = state;
+        if (create_e_stop) {
+            offset = 140;
+            setView();
+            socket.on("e_stop_state", function (state) {
+                let led = document.getElementById("led");
+                let button = document.getElementById("eStopButton");
+                let buttonInput = document.getElementById("eStopInput");
+        
+                if (!state) {
+                    if (!button.disabled)
+                        setButton(button, buttonInput, "OFF");
+                    led.style.backgroundColor = "lime";
+                }
+                else {
+                    if (!button.disabled)
+                        setButton(button, buttonInput, "ON");
+                    led.style.backgroundColor = "red";
+                }
+            });
+        } else {
+            offset = 0;
+            removeButton();
+            setView();
+            socket.off("e_stop_state");
+        }
+    })
 
-        if (!state) {
-            if (!button.disabled)
-                setButton(button, buttonInput, "OFF");
-            led.style.backgroundColor = "lime";
-        }
-        else {
-            if (!button.disabled)
-                setButton(button, buttonInput, "ON");
-            led.style.backgroundColor = "red";
-        }
-    });
+    setView();
 };
 
 $(window).resize(function () {
@@ -52,14 +68,16 @@ function setView() {
     }
     createJoystick(
         $(window).width() / 2,
-        $(window).height() / 2 - 130,
+        $(window).height() / 2 - offset,
         (joySize * 2) / 3
     );
 
-    buttonSize = 200;
-    createButton(
-        $(window).width() / 2 - buttonSize / 2,
-        $(window).height() / 2 - buttonSize / 2 + 150,
-        buttonSize
-    );
+    if (create_e_stop) {
+        buttonSize = 200;
+        createButton(
+            $(window).width() / 2 - buttonSize / 2,
+            $(window).height() / 2 - buttonSize / 2 + offset,
+            buttonSize
+        );
+    }
 }

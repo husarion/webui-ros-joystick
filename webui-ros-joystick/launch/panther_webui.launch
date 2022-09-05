@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="wait_nodes" default="" />
+  <arg name="linear_scale" default="1" />
+  <arg name="angular_scale" default="1" />
+  <arg name="node_name" default="node_server" />
+  <arg name="e_stop" default="false" />
+
+  <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen" args=" --wait $(arg wait_nodes) --lin $(arg linear_scale) --ang $(arg angular_scale) --e_stop $(arg e_stop)">
+    <remap from="e_stop_trigger" to="/panther_hardware/e_stop_trigger" if="$(arg e_stop)" />
+    <remap from="e_stop_clear" to="/panther_hardware/e_stop_clear" if="$(arg e_stop)" />
+    <remap from="e_stop" to="/panther_hardware/e_stop" if="$(arg e_stop)" />
+  </node>
+
+</launch>

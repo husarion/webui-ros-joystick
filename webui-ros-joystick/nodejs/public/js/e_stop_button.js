@@ -4,6 +4,13 @@ const BUTTON_TEXT_COLOR = "#c4c4c4"
 const BORDER_COLOR_GREY = "#777777"
 const BORDER_COLOR_BLACK = "#272727"
 
+function removeButton() {
+  const eStopContainer = document.getElementsByClassName("eStopContainer");
+  while (eStopContainer.length > 0) {
+    eStopContainer[0].parentNode.removeChild(eStopContainer[0]);
+  }
+}
+
 function createButton(posX, posY, size) {
   let button = document.getElementById("eStopButton");
   let eStopInput = document.getElementById("eStopInput");

@@ -70,6 +70,12 @@ const argv = yargs
     description: "Scale for angular velocity",
     type: "array",
   })
+  .option("e_stop", {
+    alias: "e_stop",
+    default: false,
+    description: "Spawn e-stop button",
+    type: "bool",
+  })
   .help()
   .alias("help", "h")
   .version(false).argv;
@@ -107,6 +113,8 @@ io.on("connection", function (socket) {
   socket.on("disconnect", function () {
     console.log("user disconnected");
   });
+
+  socket.emit("create_e_stop", argv.e_stop);
 
   socket.on("e_stop_trigger", async (callback) => {
     let success = await handleCallTriggerService('/e_stop_trigger', e_stop_trigger_client, 5000);
@@ -155,14 +163,16 @@ rosnodejs
       default_publisher_options
     );
 
-    e_stop_subscriber = rosNode.subscribe(
-      "/e_stop",
-      std_msgs.Bool,
-      eStopCallback
-    );
-
-    e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
-    e_stop_clear_client = rosNode.serviceClient('/e_stop_clear', std_srvs.Trigger);
+    if (argv.e_stop) {
+      e_stop_subscriber = rosNode.subscribe(
+        "/e_stop",
+        std_msgs.Bool,
+        eStopCallback
+      );
+  
+      e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
+      e_stop_clear_client = rosNode.serviceClient('/e_stop_clear', std_srvs.Trigger);
+    }
 
     argv.wait.forEach((wait_node) => {
       let node_name = "/" + wait_node + "/get_loggers";
