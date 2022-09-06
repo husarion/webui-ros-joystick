@@ -20,7 +20,7 @@ function createButton(posX, posY, size) {
   button.style.height = size + "px";
   button.style.borderWidth = "16px";
   button.style.borderRadius = "50%";
-  button.style.position = "fixed";
+  button.style.position = "absolute";
   button.style.left = posX + "px";
   button.style.top = posY + "px";
   button.style.borderStyle = "solid";

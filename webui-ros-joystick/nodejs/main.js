@@ -17,11 +17,14 @@ var e_stop_trigger_client;
 var e_stop_reset_client;
 var e_stop_subscriber;
 var alerts = new Array();
-let eStop = false;
-let outputLinearVel = 0;
-let outputAngularVel = 0;
-let maxLinearAccel = 1.0;
-let maxAngularAccel = 1.0;
+let eStop = true;
+let outputLinVel = 0;
+let outputAngVel = 0;
+let maxLinVel;
+let maxAngVel;
+let maxLinAccel;
+let maxAngAccel;
+let eStopPresent;
 let lastVelocityMsgTime = 0;
 
 var Alert = function (id, state, message) {
@@ -51,55 +54,32 @@ function update_alerts(alerts) {
   io.emit("alert_states", alerts);
 }
 
-const argv = yargs
-  .option("linear_scale", {
-    description: "Scale for linear velocity",
-    default: 1,
-    alias: "lin",
-    type: "number",
-  })
-  .option("angular_scale", {
-    alias: "ang",
-    default: 1,
-    description: "Scale for angular velocity",
-    type: "number",
-  })
-  .option("wait", {
-    alias: "wait_nodes",
-    default: "",
-    description: "Scale for angular velocity",
-    type: "array",
-  })
-  .option("e_stop", {
-    alias: "e_stop",
-    default: false,
-    description: "Spawn e-stop button",
-    type: "boolean",
-  })
-  .help()
-  .alias("help", "h")
-  .version(false).argv;
-
-console.log(
-  "Velocities will be scaled by: [",
-  argv.linear_scale,
-  ", ",
-  argv.angular_scale,
-  "]"
-);
-
-console.log("Wait for nodes: ", argv.wait);
-
-argv.wait.forEach((wait_node) => {
-  if (wait_node != "") {
-    let alert = new Alert(
-      wait_node,
-      ALERT_ERROR,
-      "Waiting for " + wait_node + " node to start"
-    );
-    alerts.push(alert);
+function nodesStrToArray(nodes_str) {
+  let nodes = nodes_str.split(" ");
+  // remove empty fields
+  let i = 0;
+  while (i < nodes.length) {
+    if (nodes[i] == "") {
+      nodes.splice(i, 1);
+    } else {
+      ++i;
+    }
   }
-});
+
+  nodes.forEach((wait_node) => {
+    if (wait_node != "") {
+      let alert = new Alert(
+        wait_node,
+        ALERT_ERROR,
+        "Waiting for " + wait_node + " node to start"
+      );
+      alerts.push(alert);
+    }
+  });
+
+  console.log("Wait for nodes: ", nodes);
+  return nodes;
+}
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
@@ -114,7 +94,7 @@ io.on("connection", function (socket) {
     console.log("user disconnected");
   });
 
-  socket.emit("create_e_stop", argv.e_stop);
+  socket.emit("create_e_stop", eStopPresent);
 
   socket.on("e_stop_trigger", async (callback) => {
     let success = await handleCallTriggerService('/e_stop_trigger', e_stop_trigger_client, 5000);
@@ -133,16 +113,16 @@ io.on("connection", function (socket) {
   socket.on("drive_command", function (drive_command) {
     if (!eStop) {
       if (!drive_command.stop) {
-        let commandLinearVel = drive_command.lin * argv.linear_scale;
-        let commandAngularVel = drive_command.ang * argv.angular_scale;
-        outputLinearVel = accelLimiting(outputLinearVel, commandLinearVel, maxLinearAccel);
-        outputAngularVel = accelLimiting(outputAngularVel, commandAngularVel, maxAngularAccel);
+        let commandLinVel = drive_command.lin * maxLinVel;
+        let commandAngVel = drive_command.ang * maxAngVel;
+        outputLinVel = accelLimiting(outputLinVel, commandLinVel, maxLinAccel);
+        outputAngVel = accelLimiting(outputAngVel, commandAngVel, maxAngAccel);
       } else {
-        outputLinearVel = 0;
-        outputAngularVel = 0;
+        outputLinVel = 0;
+        outputAngVel = 0;
       }
-      drive_msg.linear.x = outputLinearVel;
-      drive_msg.angular.z = outputAngularVel;
+      drive_msg.linear.x = outputLinVel;
+      drive_msg.angular.z = outputAngVel;
       lastVelocityMsgTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
       cmd_vel_publisher.publish(drive_msg);
     }
@@ -155,7 +135,7 @@ http.listen(8000, function () {
 
 rosnodejs
   .initNode("/rosnodejs")
-  .then((rosNode) => {
+  .then(async (rosNode) => {
 
     cmd_vel_publisher = rosNode.advertise(
       "/cmd_vel",
@@ -163,18 +143,27 @@ rosnodejs
       default_publisher_options
     );
 
-    if (argv.e_stop) {
+    let privateNH = rosnodejs.getNodeHandle(rosNode.getNodeName());
+    maxLinVel = await getRosParam(privateNH, "max_lin_vel", 1.0);
+    maxAngVel = await getRosParam(privateNH, "max_ang_vel", 1.0);
+    maxLinAccel = await getRosParam(privateNH, "max_lin_accel", 2.0);
+    maxAngAccel = await getRosParam(privateNH, "max_ang_accel", 2.0);
+    eStopPresent = await getRosParam(privateNH, "e_stop", false);
+    let waitNodesStr = await getRosParam(privateNH, "wait_nodes", "");
+
+    if (eStopPresent) {
       e_stop_subscriber = rosNode.subscribe(
         "/e_stop",
         std_msgs.Bool,
         eStopCallback
       );
-  
+
       e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
       e_stop_reset_client = rosNode.serviceClient('/e_stop_reset', std_srvs.Trigger);
     }
 
-    argv.wait.forEach((wait_node) => {
+    let waitNodes = nodesStrToArray(waitNodesStr);
+    waitNodes.forEach((wait_node) => {
       let node_name = "/" + wait_node + "/get_loggers";
       rosNode.waitForService(node_name).then(() => {
         alerts.forEach((alert) => {
@@ -189,6 +178,19 @@ rosnodejs
   .catch((err) => {
     rosnodejs.log.error(err.stack);
   });
+
+async function getRosParam(nh, paramName, defaultValue = NaN) {
+  let paramValue = defaultValue;
+  await nh.hasParam(paramName).then(async (exists) => {
+    if (exists) {
+      await nh.getParam(paramName).then((value) => {
+        paramValue = value;
+      });
+    }
+  });
+  rosnodejs.log.info(paramName + ": " + paramValue);
+  return paramValue;
+}
 
 var eStopCallback = (msg) => {
   eStop = msg.data;
