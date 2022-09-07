@@ -54,9 +54,9 @@ function createJoystick(posX, posY, size) {
       let maxX_diff = maxJoyPos - (posX - beginJoyPosX);
       let minX_diff = maxJoyPos + (posX - beginJoyPosX);
       if (diffY > 0) {
-        lin = diffY / maxY_diff;
+        lin = (diffY * 1.1) / maxY_diff;
       } else {
-        lin = diffY / minY_diff;
+        lin = (diffY * 1.1) / minY_diff;
       }
       if (diffX > 0) {
         ang = diffX / maxX_diff;
@@ -64,6 +64,8 @@ function createJoystick(posX, posY, size) {
         ang = diffX / minX_diff;
       }
     }
+    if (lin > 1.0) lin = 1.0;
+    if (lin < -1.0) lin = -1.0;
 
     clearTimeout(joystick_timeout);
     moveAction(lin, ang);
