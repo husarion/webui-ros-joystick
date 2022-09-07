@@ -96,7 +96,9 @@ function buttonStateChange(button, buttonInput) {
   if (buttonInput.value == "OFF") {
     socket.emit("e_stop_reset", (response) => {
       if (!response.success) {
-        alert("Failed to reset e-stop");
+        alert("Failed to reset E-STOP. \n" +
+        "Check if physical E-STOP button is pressed. \n" +
+        "You may also try to turn on and off physical E-STOP.");
         setButton(button, buttonInput, "ON");
       }
       button.disabled = false;

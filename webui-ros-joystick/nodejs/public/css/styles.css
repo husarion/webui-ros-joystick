@@ -18,5 +18,23 @@ body {
 #eStopButton:disabled,
 #eStopButton[disabled]{
   border: 1px solid #777777;
-  opacity: 0.8;
+  opacity: 80%;
+}
+
+.joystick {
+  position: absolute;
+}
+
+#innerCircle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 30%;
+  background: #808080;
+}
+
+#outerCircle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 30%;
+  background: #808080;
 }

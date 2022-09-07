@@ -30,7 +30,7 @@ window.onload = function () {
                 let led = document.getElementById("led");
                 let button = document.getElementById("eStopButton");
                 let buttonInput = document.getElementById("eStopInput");
-        
+
                 if (!state) {
                     if (!button.disabled)
                         setButton(button, buttonInput, "OFF");
@@ -49,8 +49,6 @@ window.onload = function () {
             socket.off("e_stop_state");
         }
     })
-
-    setView();
 };
 
 $(window).resize(function () {
@@ -66,7 +64,6 @@ function setView() {
     if (joySize > $(window).width()) {
         joySize = $(window).width();
     }
-    maxJoyPos = joySize / 3;
     createJoystick(
         $(window).width() / 2,
         $(window).height() / 2 - offset,
