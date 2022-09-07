@@ -66,6 +66,7 @@ function setView() {
     if (joySize > $(window).width()) {
         joySize = $(window).width();
     }
+    maxJoyPos = joySize / 3;
     createJoystick(
         $(window).width() / 2,
         $(window).height() / 2 - offset,

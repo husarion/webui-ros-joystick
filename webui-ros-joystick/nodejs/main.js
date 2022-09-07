@@ -17,7 +17,7 @@ var e_stop_trigger_client;
 var e_stop_reset_client;
 var e_stop_subscriber;
 var alerts = new Array();
-let eStop = true;
+let eStop = false;
 let outputLinVel = 0;
 let outputAngVel = 0;
 let maxLinVel;
@@ -152,6 +152,8 @@ rosnodejs
     let waitNodesStr = await getRosParam(privateNH, "wait_nodes", "");
 
     if (eStopPresent) {
+      eStop = true;
+      
       e_stop_subscriber = rosNode.subscribe(
         "/e_stop",
         std_msgs.Bool,

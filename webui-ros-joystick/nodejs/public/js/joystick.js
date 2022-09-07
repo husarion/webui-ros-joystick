@@ -1,3 +1,6 @@
+var beginJoyPosX = 0;
+var beginJoyPosY = 0;
+var maxJoyPos = 0;
 var manager;
 var lin;
 var ang;
@@ -25,12 +28,12 @@ function repeat_velcmd(v_lin, v_ang) {
   }, velocity_repeat_delay);
 }
 
-function createJoystick(pos_x, pos_y, size) {
+function createJoystick(posX, posY, size) {
   joystickContainer = document.getElementById("joystick");
 
   var options = {
     zone: joystickContainer,
-    position: { left: pos_x + "px", top: pos_y + "px" },
+    position: { left: posX + "px", top: posY + "px" },
     mode: "static",
     size: size,
     color: "#808080",
@@ -38,11 +41,29 @@ function createJoystick(pos_x, pos_y, size) {
   };
   manager = nipplejs.create(options);
   manager.on("move", function (evt, nipple) {
-    relativePosX = pos_x - nipple.position.x;
-    relativePosY = pos_y - nipple.position.y;
-
-    ang = mapRange(relativePosX, - size / 2, size / 2, -1, 1);
-    lin = mapRange(relativePosY, - size / 2, size / 2, -1, 1);
+    if (beginJoyPosX == 0 && beginJoyPosY == 0) {
+      beginJoyPosX = nipple.position.x;
+      beginJoyPosY = nipple.position.y;
+      lin = 0;
+      ang = 0;
+    } else {
+      let diffY = beginJoyPosY - nipple.position.y;
+      let maxY_diff = maxJoyPos - (posY - beginJoyPosY);
+      let minY_diff = maxJoyPos + (posY - beginJoyPosY);
+      let diffX = beginJoyPosX - nipple.position.x;
+      let maxX_diff = maxJoyPos - (posX - beginJoyPosX);
+      let minX_diff = maxJoyPos + (posX - beginJoyPosX);
+      if (diffY > 0) {
+        lin = diffY / maxY_diff;
+      } else {
+        lin = diffY / minY_diff;
+      }
+      if (diffX > 0) {
+        ang = diffX / maxX_diff;
+      } else {
+        ang = diffX / minX_diff;
+      }
+    }
 
     clearTimeout(joystick_timeout);
     moveAction(lin, ang);
@@ -52,6 +73,8 @@ function createJoystick(pos_x, pos_y, size) {
   });
   manager.on("end", function () {
     clearTimeout(joystick_timeout);
+    beginJoyPosX = 0;
+    beginJoyPosY = 0;
     lin = 0;
     ang = 0;
     moveAction(0, 0, true);
