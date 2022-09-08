@@ -7,18 +7,27 @@ body {
   font-family: Lato;
 }
 
-.joystick-container {
+.joystickContainer {
   position: absolute;
 }
 
-.eStop-container {
+.eStopContainer {
   position: absolute;
+}
+
+.toolBar {
+  display: block;
+  position: absolute;
+  background: #555555;
+  width: 100%;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 #eStopButton:disabled,
-#eStopButton[disabled]{
+#eStopButton[disabled] {
   border: 1px solid #777777;
-  opacity: 80%;
+  opacity: 50%;
 }
 
 .joystick {
@@ -29,12 +38,18 @@ body {
   position: absolute;
   border-radius: 50%;
   opacity: 30%;
-  background: #808080;
 }
 
 #outerCircle {
   position: absolute;
   border-radius: 50%;
   opacity: 30%;
-  background: #808080;
+}
+
+#ledCircle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 50%;
+  -webkit-mask: radial-gradient(transparent 65%, black 66%);
+  mask: radial-gradient(transparent 65%, black 66%);
 }

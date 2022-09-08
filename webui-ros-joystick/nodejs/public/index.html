@@ -18,20 +18,22 @@
 <script src="js/e_stop_button.js"></script>
 <script src="js/update_view.js"></script>
 
-<body class="bg-light">
+<body class="bg-dark">
     <div id="alerts">
     </div>
 
-    <div class="joystick-container">
+    <div class="joystickContainer">
         <div id="outerCircle"></div>
         <div id="innerCircle"></div>
+        <div id="ledCircle"></div>
         <div class="joystick" id="joystick"></div>
     </div>
 
-    <div class="eStopContainer">
-        <input type="hidden" id="eStopInput" value="ON">
-        <button id="eStopButton" hidden onclick="toggleButton(this)">E-STOP</button>
-        <div id="led"></div>
+    <div class="toolBar">
+        <div class="eStopContainer">
+            <input type="hidden" id="eStopInput" value="ON">
+            <button id="eStopButton" hidden onclick="toggleButton(this)"></button>
+        </div>
     </div>
 </body>
 

@@ -24,22 +24,24 @@ window.onload = function () {
     socket.on("create_e_stop", function (state) {
         create_e_stop = state;
         if (create_e_stop) {
-            offset = 140;
             setView();
             socket.on("e_stop_state", function (state) {
-                let led = document.getElementById("led");
                 let button = document.getElementById("eStopButton");
                 let buttonInput = document.getElementById("eStopInput");
+                let ledCircle = document.getElementById("ledCircle");
+                let joystick = document.getElementById("joystick");
 
                 if (!state) {
                     if (!button.disabled)
                         setButton(button, buttonInput, "OFF");
-                    led.style.backgroundColor = "lime";
+                        ledCircle.style.backgroundColor = LED_GREEN_COLOR;
+                        joystick.hidden = false;
                 }
                 else {
                     if (!button.disabled)
                         setButton(button, buttonInput, "ON");
-                    led.style.backgroundColor = "red";
+                        ledCircle.style.backgroundColor = LED_RED_COLOR;
+                        joystick.hidden = true;
                 }
             });
         } else {
@@ -56,8 +58,22 @@ $(window).resize(function () {
 });
 
 function setView() {
+    if (create_e_stop) {
+        let buttonSize = 100;
+        let toolBarHeight = buttonSize * 1.2;
+        offset = toolBarHeight / 2;
+        let toolBar = document.querySelector(".toolBar");
+        toolBar.style.height = toolBarHeight + "px";
+
+        createButton(
+            $(window).width() - toolBarHeight / 1.5,
+            toolBarHeight / 2,
+            buttonSize
+        )
+    }
+
     removeJoystick();
-    joySize = 400;
+    let joySize = 400;
     if (joySize > $(window).height()) {
         joySize = $(window).height();
     }
@@ -66,16 +82,7 @@ function setView() {
     }
     createJoystick(
         $(window).width() / 2,
-        $(window).height() / 2 - offset,
+        $(window).height() / 2 + offset,
         (joySize * 2) / 3
     );
-
-    if (create_e_stop) {
-        buttonSize = 200;
-        createButton(
-            $(window).width() / 2 - buttonSize / 2,
-            $(window).height() / 2 - buttonSize / 2 + offset,
-            buttonSize
-        );
-    }
 }
