@@ -1,10 +1,20 @@
 <launch>
 
-    <arg name="wait_nodes" default=""/>
-    <arg name="linear_scale" default="1" />
-    <arg name="angular_scale" default="1" />
-    <arg name="node_name" default="node_server"/>
+    <arg name="node_name" default="node_server" />
+    <arg name="wait_nodes" default="" />
+    <arg name="max_lin_vel" default="1.0" />
+    <arg name="max_ang_vel" default="1.0" />
+    <arg name="max_lin_accel" default="2.0" />
+    <arg name="max_ang_accel" default="2.0" />
+    <arg name="e_stop" default="false" />
 
-    <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen" args=" --wait $(arg wait_nodes) --lin $(arg linear_scale) --ang $(arg angular_scale)"/>
+    <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen">
+        <param name="max_lin_vel" value="$(arg max_lin_vel)" />
+        <param name="max_ang_vel" value="$(arg max_ang_vel)" />
+        <param name="max_lin_accel" value="$(arg max_lin_accel)" />
+        <param name="max_ang_accel" value="$(arg max_ang_accel)" />
+        <param name="e_stop" value="$(arg e_stop)" />
+        <param name="wait_nodes" value="$(arg wait_nodes)" />
+    </node>
 
 </launch>
