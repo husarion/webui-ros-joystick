@@ -71,7 +71,7 @@ function createJoystick(posX, posY, size) {
     zone: joystick,
     color: JOYSTICK_COLOR,
     size: joystickSize,
-    fadeTime: 100,
+    fadeTime: 40,
   };
   manager = nipplejs.create(options);
   manager.on("start", async function (evt, nipple) {
@@ -80,7 +80,7 @@ function createJoystick(posX, posY, size) {
     lin = 0;
     ang = 0;
 
-    await new Promise(r => setTimeout(r, 50));
+    await new Promise(r => setTimeout(r, 30));
     innerCircle.hidden = true;
     outerCircle.hidden = true;
     // move led
@@ -111,7 +111,7 @@ function createJoystick(posX, posY, size) {
     beginJoyPosX = 0;
     beginJoyPosY = 0;
     moveAction(0, 0, true);
-    await new Promise(r => setTimeout(r, 50));
+    await new Promise(r => setTimeout(r, 20));
     innerCircle.hidden = false;
     outerCircle.hidden = false;
     ledCircle.style.top = "0px";

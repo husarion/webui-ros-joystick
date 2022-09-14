@@ -4,7 +4,20 @@ let create_e_stop = false;
 window.onload = function () {
   console.log("onLoad triggered");
   alert_container = document.getElementById("alerts");
+  connectionWarn = document.getElementById("connectionWarn");
   socket = io();
+
+  socket.on("connect", function () {
+    console.log("connected to server");
+    connectionWarn.hidden = true;
+  });
+
+  socket.on("disconnect", function () {
+    console.log("disconected from the server");
+    joystick.hidden = true;
+    connectionWarn.hidden = false;
+  })
+
   socket.on("alert_states", function (alert_state) {
     let alerts_section = new String();
     alert_state.forEach((alert) => {

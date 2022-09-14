@@ -19,6 +19,17 @@
 <script src="js/update_view.js"></script>
 
 <body class="bg-dark">
+
+    <div class="toolBar">
+        <div class="eStopContainer">
+            <input type="hidden" id="eStopInput" value="ON">
+            <button id="eStopButton" hidden onclick="toggleButton(this)"></button>
+        </div>
+    </div>
+
+    <div id="connectionWarn" class="alert alert-warning" role = "alert" hidden>
+        Disconnected from the server
+    </div>
     <div id="alerts">
     </div>
 
@@ -29,12 +40,6 @@
         <div class="joystick" id="joystick" hidden></div>
     </div>
 
-    <div class="toolBar">
-        <div class="eStopContainer">
-            <input type="hidden" id="eStopInput" value="ON">
-            <button id="eStopButton" hidden onclick="toggleButton(this)"></button>
-        </div>
-    </div>
 </body>
 
 </html>
