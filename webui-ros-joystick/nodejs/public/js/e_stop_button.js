@@ -16,7 +16,6 @@ function createButton(posX, posY, size) {
   let button = document.getElementById("eStopButton");
   let buttonInput = document.getElementById("eStopInput");
 
-  button.hidden = false;
   button.style.width = size + "px";
   button.style.height = size + "px";
   button.style.borderWidth = size / 12.5 + "px";
@@ -28,7 +27,10 @@ function createButton(posX, posY, size) {
   button.style.fontSize = size / 5 + "px";
   button.style.color = BUTTON_TEXT_COLOR;
   button.style.outline = 0;
-  setButton(button, buttonInput, "ON");
+  if (button.hidden) {
+    setButton(button, buttonInput, "ON");
+  }
+  button.hidden = false;
 
   buttonContainer.style.left = posX + "px";
   buttonContainer.style.top = posY + "px";

@@ -65,7 +65,9 @@ function createJoystick(posX, posY, size) {
   ledCircle.style.height = size + "px";
   ledCircle.style.top = "0px";
   ledCircle.style.left = "0px";
-  ledCircle.style.backgroundColor = LED_RED_COLOR;
+  if (joystick.hidden) {
+    ledCircle.style.backgroundColor = LED_RED_COLOR;
+  } 
 
   var options = {
     zone: joystick,
@@ -106,7 +108,7 @@ function createJoystick(posX, posY, size) {
       repeat_velcmd(lin, ang);
     }, velocity_repeat_delay);
   });
-  manager.on("end", async function () {
+  manager.on("end, destroyed", async function () {
     clearTimeout(joystick_timeout);
     beginJoyPosX = 0;
     beginJoyPosY = 0;

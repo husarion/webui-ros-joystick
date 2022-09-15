@@ -5,17 +5,20 @@ window.onload = function () {
   console.log("onLoad triggered");
   alert_container = document.getElementById("alerts");
   connectionWarn = document.getElementById("connectionWarn");
+  button = document.getElementById("eStopButton");
   socket = io();
 
   socket.on("connect", function () {
     console.log("connected to server");
     connectionWarn.hidden = true;
+    button.disabled = false;
   });
 
   socket.on("disconnect", function () {
     console.log("disconected from the server");
     joystick.hidden = true;
     connectionWarn.hidden = false;
+    button.disabled = true;
   })
 
   socket.on("alert_states", function (alert_state) {
@@ -71,6 +74,14 @@ $(window).resize(function () {
   setView();
 });
 
+$(window).focus(function () {
+  setView();
+});
+
+$(window).blur(function () {
+  manager.destroy();
+});
+
 function setView() {
   if (create_e_stop) {
     let buttonSize = 100;
@@ -100,3 +111,9 @@ function setView() {
     (joySize * 2) / 3
   );
 }
+
+// reset joystick on rightclick
+document.addEventListener("contextmenu", async function () {
+  await new Promise(r => setTimeout(r, 40));
+  setView();
+});
