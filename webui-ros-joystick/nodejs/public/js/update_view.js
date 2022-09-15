@@ -112,8 +112,5 @@ function setView() {
   );
 }
 
-// reset joystick on rightclick
-document.addEventListener("contextmenu", async function () {
-  await new Promise(r => setTimeout(r, 40));
-  setView();
-});
+// disable rightclick
+document.addEventListener('contextmenu', event => event.preventDefault());
