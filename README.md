@@ -46,7 +46,7 @@ Available on [Docker Hub](https://hub.docker.com/r/husarion/webui-ros-joystick/t
 ### Demo
 
 Launch the webui joystick in the docker container. After launching, the `/cmd_vel` topic should be accessible on your host computer.
-Toolbar interface can be enabled/disabled by setting the `e_stop` parameter in `docker-compose.yaml` file. A Green/red circle around the joystick indicates if velocities will be sent to `/cmd_vel` topic.
+Toolbar interface can be enabled/disabled by setting the `e_stop` parameter in `docker-compose.yaml` file. A Green/Red circle around the joystick indicates if velocities will be published at `/cmd_vel` topic.
 
 Go to the `webui-ros-joystick` folder and run:
 
