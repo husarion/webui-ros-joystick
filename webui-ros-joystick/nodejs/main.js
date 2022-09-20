@@ -7,15 +7,15 @@ var io = require("socket.io")(http);
 const yargs = require("yargs");
 const rosnodejs = require("rosnodejs");
 const { inflate } = require("zlib");
-const geometry_msgs = rosnodejs.require("geometry_msgs").msg;
-const std_msgs = rosnodejs.require("std_msgs").msg;
-const std_srvs = rosnodejs.require("std_srvs").srv;
+const geometryMsgs = rosnodejs.require("geometry_msgs").msg;
+const stdMsgs = rosnodejs.require("std_msgs").msg;
+const stdSrvs = rosnodejs.require("std_srvs").srv;
 
-const drive_msg = new geometry_msgs.Twist();
-var cmd_vel_publisher;
-var e_stop_trigger_client;
-var e_stop_reset_client;
-var e_stop_subscriber;
+const driveMsg = new geometryMsgs.Twist();
+var cmdVelPublisher;
+var eStopTriggerClient;
+var eStopResetClient;
+var eStopSubscriber;
 var alerts = new Array();
 let eStop = false;
 let outputLinVel = 0;
@@ -39,7 +39,7 @@ Alert.prototype.update = function (id, state, message) {
   this._message = message;
 };
 
-const default_publisher_options = {
+const defaultPublisherOptions = {
   queueSize: 1,
   latching: false,
   throttleMs: 100,
@@ -50,12 +50,12 @@ const ALERT_OK = 1;
 const ALERT_WARN = 2;
 const ALERT_ERROR = 3;
 
-function update_alerts(alerts) {
+function updateAlerts(alerts) {
   io.emit("alert_states", alerts);
 }
 
-function nodesStrToArray(nodes_str) {
-  let nodes = nodes_str.split(" ");
+function nodesStrToArray(nodesStr) {
+  let nodes = nodesStr.split(" ");
   // remove empty fields
   let i = 0;
   while (i < nodes.length) {
@@ -66,12 +66,12 @@ function nodesStrToArray(nodes_str) {
     }
   }
 
-  nodes.forEach((wait_node) => {
-    if (wait_node != "") {
+  nodes.forEach((waitNode) => {
+    if (waitNode != "") {
       let alert = new Alert(
-        wait_node,
+        waitNode,
         ALERT_ERROR,
-        "Waiting for " + wait_node + " node to start"
+        "Waiting for " + waitNode + " node to start"
       );
       alerts.push(alert);
     }
@@ -89,7 +89,7 @@ app.use(express.static("public"));
 
 io.on("connection", function (socket) {
   console.log("a user connected");
-  update_alerts(alerts);
+  updateAlerts(alerts);
   socket.on("disconnect", function () {
     console.log("user disconnected");
   });
@@ -97,34 +97,34 @@ io.on("connection", function (socket) {
   socket.emit("create_e_stop", eStopPresent);
 
   socket.on("e_stop_trigger", async (callback) => {
-    let success = await handleCallTriggerService('/e_stop_trigger', e_stop_trigger_client, 5000);
+    let success = await handleCallTriggerService('/e_stop_trigger', eStopTriggerClient, 5000);
     callback({
       success: success
     });
   });
 
   socket.on("e_stop_reset", async (callback) => {
-    let success = await handleCallTriggerService('/e_stop_reset', e_stop_reset_client, 5000);
+    let success = await handleCallTriggerService('/e_stop_reset', eStopResetClient, 5000);
     callback({
       success: success
     });
   });
 
-  socket.on("drive_command", function (drive_command) {
+  socket.on("drive_command", function (driveCommand) {
     if (!eStop) {
-      if (!drive_command.stop) {
-        let commandLinVel = drive_command.lin * maxLinVel;
-        let commandAngVel = drive_command.ang * maxAngVel;
+      if (!driveCommand.stop) {
+        let commandLinVel = driveCommand.lin * maxLinVel;
+        let commandAngVel = driveCommand.ang * maxAngVel;
         outputLinVel = accelLimiting(outputLinVel, commandLinVel, maxLinAccel);
         outputAngVel = accelLimiting(outputAngVel, commandAngVel, maxAngAccel);
       } else {
         outputLinVel = 0;
         outputAngVel = 0;
       }
-      drive_msg.linear.x = outputLinVel;
-      drive_msg.angular.z = outputAngVel;
+      driveMsg.linear.x = outputLinVel;
+      driveMsg.angular.z = outputAngVel;
       lastVelocityMsgTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
-      cmd_vel_publisher.publish(drive_msg);
+      cmdVelPublisher.publish(driveMsg);
     }
   });
 });
@@ -137,10 +137,10 @@ rosnodejs
   .initNode("/rosnodejs")
   .then(async (rosNode) => {
 
-    cmd_vel_publisher = rosNode.advertise(
+    cmdVelPublisher = rosNode.advertise(
       "/cmd_vel",
-      geometry_msgs.Twist,
-      default_publisher_options
+      geometryMsgs.Twist,
+      defaultPublisherOptions
     );
 
     let privateNH = rosnodejs.getNodeHandle(rosNode.getNodeName());
@@ -153,27 +153,27 @@ rosnodejs
 
     if (eStopPresent) {
       eStop = true;
-      
-      e_stop_subscriber = rosNode.subscribe(
+
+      eStopSubscriber = rosNode.subscribe(
         "/e_stop",
-        std_msgs.Bool,
+        stdMsgs.Bool,
         eStopCallback
       );
 
-      e_stop_trigger_client = rosNode.serviceClient('/e_stop_trigger', std_srvs.Trigger);
-      e_stop_reset_client = rosNode.serviceClient('/e_stop_reset', std_srvs.Trigger);
+      eStopTriggerClient = rosNode.serviceClient('/e_stop_trigger', stdSrvs.Trigger);
+      eStopResetClient = rosNode.serviceClient('/e_stop_reset', stdSrvs.Trigger);
     }
 
     let waitNodes = nodesStrToArray(waitNodesStr);
-    waitNodes.forEach((wait_node) => {
-      let node_name = "/" + wait_node + "/get_loggers";
-      rosNode.waitForService(node_name).then(() => {
+    waitNodes.forEach((waitNode) => {
+      let nodeName = "/" + waitNode + "/get_loggers";
+      rosNode.waitForService(nodeName).then(() => {
         alerts.forEach((alert) => {
-          if (alert._id == wait_node) {
-            alert.update(wait_node, ALERT_OK, "Node " + node_name + " active");
+          if (alert._id == waitNode) {
+            alert.update(waitNode, ALERT_OK, "Node " + nodeName + " active");
           }
         });
-        update_alerts(alerts);
+        updateAlerts(alerts);
       });
     });
   })

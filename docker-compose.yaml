@@ -3,5 +3,4 @@ services:
         image: husarion/webui-ros-joystick:noetic
         container_name: webui-ros-joystick
         network_mode: host
-        ipc: host
         command: roslaunch webui-ros-joystick webui.launch

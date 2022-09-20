@@ -7,12 +7,10 @@ var beginJoyPosY = 0;
 var manager;
 var lin;
 var ang;
-var joystick_timeout;
-var velocity_repeat_delay = 100; // [ms]
-var timerInstance;
-var resize_tout;
+var joystickTimeout;
+var velocityRepeatDelay = 100; // [ms]
 var socket;
-var alert_container;
+var alertContainer;
 
 function removeJoystick() {
   joystickContainer = document.getElementById("joystick");
@@ -24,11 +22,11 @@ function removeJoystick() {
   }
 }
 
-function repeat_velcmd(v_lin, v_ang) {
-  moveAction(v_lin, v_ang);
-  joystick_timeout = setTimeout(function () {
-    repeat_velcmd(lin, ang);
-  }, velocity_repeat_delay);
+function repeatVelCmd(vLin, vAng) {
+  moveAction(vLin, vAng);
+  joystickTimeout = setTimeout(function () {
+    repeatVelCmd(lin, ang);
+  }, velocityRepeatDelay);
 }
 
 function createJoystick(posX, posY, size) {
@@ -67,7 +65,7 @@ function createJoystick(posX, posY, size) {
   ledCircle.style.left = "0px";
   if (joystick.hidden) {
     ledCircle.style.backgroundColor = LED_RED_COLOR;
-  } 
+  }
 
   var options = {
     zone: joystick,
@@ -102,14 +100,14 @@ function createJoystick(posX, posY, size) {
     if (lin > 1.0) lin = 1.0;
     if (lin < -1.0) lin = -1.0;
 
-    clearTimeout(joystick_timeout);
+    clearTimeout(joystickTimeout);
     moveAction(lin, ang);
-    joystick_timeout = setTimeout(function () {
-      repeat_velcmd(lin, ang);
-    }, velocity_repeat_delay);
+    joystickTimeout = setTimeout(function () {
+      repeatVelCmd(lin, ang);
+    }, velocityRepeatDelay);
   });
   manager.on("end, destroyed", async function () {
-    clearTimeout(joystick_timeout);
+    clearTimeout(joystickTimeout);
     beginJoyPosX = 0;
     beginJoyPosY = 0;
     moveAction(0, 0, true);
@@ -121,8 +119,8 @@ function createJoystick(posX, posY, size) {
   });
 }
 
-function mapRange(value, in_min, in_max, out_min, out_max) {
-  return out_min + (out_max - out_min) * (value - in_min) / (in_max - in_min);
+function mapRange(value, inMin, inMax, outMin, outMax) {
+  return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
 }
 
 function moveAction(linear, angular, stop = false) {

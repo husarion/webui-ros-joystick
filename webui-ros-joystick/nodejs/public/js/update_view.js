@@ -1,9 +1,9 @@
 let offset = 0;
-let create_e_stop = false;
+let createEStop = false;
 
 window.onload = function () {
   console.log("onLoad triggered");
-  alert_container = document.getElementById("alerts");
+  alertContainer = document.getElementById("alerts");
   connectionWarn = document.getElementById("connectionWarn");
   button = document.getElementById("eStopButton");
   socket = io();
@@ -21,27 +21,27 @@ window.onload = function () {
     button.disabled = true;
   })
 
-  socket.on("alert_states", function (alert_state) {
-    let alerts_section = new String();
-    alert_state.forEach((alert) => {
+  socket.on("alert_states", function (alertState) {
+    let alertsSection = new String();
+    alertState.forEach((alert) => {
       if (alert._state == 2) {
-        alerts_section += '<div class="alert alert-warning" role="alert">';
-        alerts_section += alert._message;
-        alerts_section += "</div>";
+        alertsSection += '<div class="alert alert-warning" role="alert">';
+        alertsSection += alert._message;
+        alertsSection += "</div>";
       } else if (alert._state == 3) {
-        alerts_section += '<div class="alert alert-danger" role = "alert">';
-        alerts_section += alert._message;
-        alerts_section += "</div>";
+        alertsSection += '<div class="alert alert-danger" role = "alert">';
+        alertsSection += alert._message;
+        alertsSection += "</div>";
       }
     });
-    alert_container.innerHTML = alerts_section;
+    alertContainer.innerHTML = alertsSection;
   });
 
   socket.on("create_e_stop", function (state) {
-    create_e_stop = state;
+    createEStop = state;
     let joystick = document.getElementById("joystick");
     let ledCircle = document.getElementById("ledCircle");
-    if (create_e_stop) {
+    if (createEStop) {
       setView();
       socket.on("e_stop_state", function (state) {
         let button = document.getElementById("eStopButton");
@@ -70,20 +70,8 @@ window.onload = function () {
   })
 };
 
-$(window).resize(function () {
-  setView();
-});
-
-$(window).focus(function () {
-  setView();
-});
-
-$(window).blur(function () {
-  manager.destroy();
-});
-
 function setView() {
-  if (create_e_stop) {
+  if (createEStop) {
     let buttonSize = 100;
     let toolBarHeight = buttonSize * 1.2;
     offset = toolBarHeight / 2;
@@ -112,5 +100,8 @@ function setView() {
   );
 }
 
-// disable rightclick
+window.addEventListener("resize", setView);
+window.addEventListener("focus", setView);
+window.addEventListener("blur", removeJoystick);
+// disable context menu
 document.addEventListener('contextmenu', event => event.preventDefault());
