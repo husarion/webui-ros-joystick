@@ -1,0 +1,19 @@
+<launch>
+
+  <arg name="node_name" default="node_server" />
+  <arg name="wait_nodes" default="" />
+  <arg name="max_lin_vel" default="2.0" />
+  <arg name="max_ang_vel" default="1.0" />
+  <arg name="max_lin_accel" default="2.0" />
+  <arg name="max_ang_accel" default="2.0" />
+  <arg name="e_stop" default="false" />
+
+  <group>
+    <remap from="e_stop_trigger" to="/panther_hardware/e_stop_trigger" if="$(arg e_stop)" />
+    <remap from="e_stop_reset" to="/panther_hardware/e_stop_reset" if="$(arg e_stop)" />
+    <remap from="e_stop" to="/panther_hardware/e_stop" if="$(arg e_stop)" />
+
+    <include file="$(find webui-ros-joystick)/launch/webui.launch" pass_all_args="true" />
+  </group>
+
+</launch>

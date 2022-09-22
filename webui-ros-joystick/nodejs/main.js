@@ -7,11 +7,25 @@ var io = require("socket.io")(http);
 const yargs = require("yargs");
 const rosnodejs = require("rosnodejs");
 const { inflate } = require("zlib");
-const geometry_msgs = rosnodejs.require("geometry_msgs").msg;
+const geometryMsgs = rosnodejs.require("geometry_msgs").msg;
+const stdMsgs = rosnodejs.require("std_msgs").msg;
+const stdSrvs = rosnodejs.require("std_srvs").srv;
 
-const drive_msg = new geometry_msgs.Twist();
-var cmd_vel_publisher;
+const driveMsg = new geometryMsgs.Twist();
+var cmdVelPublisher;
+var eStopTriggerClient;
+var eStopResetClient;
+var eStopSubscriber;
 var alerts = new Array();
+let eStop = false;
+let outputLinVel = 0;
+let outputAngVel = 0;
+let maxLinVel;
+let maxAngVel;
+let maxLinAccel;
+let maxAngAccel;
+let eStopPresent;
+let lastVelocityMsgTime = 0;
 
 var Alert = function (id, state, message) {
   this._id = id;
@@ -25,7 +39,7 @@ Alert.prototype.update = function (id, state, message) {
   this._message = message;
 };
 
-const default_publisher_options = {
+const defaultPublisherOptions = {
   queueSize: 1,
   latching: false,
   throttleMs: 100,
@@ -36,53 +50,36 @@ const ALERT_OK = 1;
 const ALERT_WARN = 2;
 const ALERT_ERROR = 3;
 
-function update_alerts(alerts) {
+function updateAlerts(alerts) {
   io.emit("alert_states", alerts);
 }
 
-const argv = yargs
-  .option("linear_scale", {
-    description: "Scale for linear velocity",
-    default: 1,
-    alias: "lin",
-    type: "number",
-  })
-  .option("angular_scale", {
-    alias: "ang",
-    default: 1,
-    description: "Scale for angular velocity",
-    type: "number",
-  })
-  .option("wait", {
-    alias: "wait_nodes",
-    default: "",
-    description: "Scale for angular velocity",
-    type: "array",
-  })
-  .help()
-  .alias("help", "h")
-  .version(false).argv;
-
-console.log(
-  "Velocities will be scaled by: [",
-  argv.linear_scale,
-  ", ",
-  argv.angular_scale,
-  "]"
-);
-
-console.log("Wait for nodes: ", argv.wait);
-
-argv.wait.forEach((wait_node) => {
-  if (wait_node != "") {
-    let alert = new Alert(
-      wait_node,
-      ALERT_ERROR,
-      "Waiting for " + wait_node + " node to start"
-    );
-    alerts.push(alert);
+function nodesStrToArray(nodesStr) {
+  let nodes = nodesStr.split(" ");
+  // remove empty fields
+  let i = 0;
+  while (i < nodes.length) {
+    if (nodes[i] == "") {
+      nodes.splice(i, 1);
+    } else {
+      ++i;
+    }
   }
-});
+
+  nodes.forEach((waitNode) => {
+    if (waitNode != "") {
+      let alert = new Alert(
+        waitNode,
+        ALERT_ERROR,
+        "Waiting for " + waitNode + " node to start"
+      );
+      alerts.push(alert);
+    }
+  });
+
+  console.log("Wait for nodes: ", nodes);
+  return nodes;
+}
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
@@ -92,15 +89,43 @@ app.use(express.static("public"));
 
 io.on("connection", function (socket) {
   console.log("a user connected");
-  update_alerts(alerts);
+  updateAlerts(alerts);
   socket.on("disconnect", function () {
     console.log("user disconnected");
   });
 
-  socket.on("drive_command", function (drive_command) {
-    drive_msg.linear.x = drive_command.lin * argv.linear_scale;
-    drive_msg.angular.z = drive_command.ang * argv.angular_scale;
-    cmd_vel_publisher.publish(drive_msg);
+  socket.emit("create_e_stop", eStopPresent);
+
+  socket.on("e_stop_trigger", async (callback) => {
+    let success = await handleCallTriggerService('/e_stop_trigger', eStopTriggerClient, 5000);
+    callback({
+      success: success
+    });
+  });
+
+  socket.on("e_stop_reset", async (callback) => {
+    let success = await handleCallTriggerService('/e_stop_reset', eStopResetClient, 5000);
+    callback({
+      success: success
+    });
+  });
+
+  socket.on("drive_command", function (driveCommand) {
+    if (!eStop) {
+      if (!driveCommand.stop) {
+        let commandLinVel = driveCommand.lin * maxLinVel;
+        let commandAngVel = driveCommand.ang * maxAngVel;
+        outputLinVel = accelLimiting(outputLinVel, commandLinVel, maxLinAccel);
+        outputAngVel = accelLimiting(outputAngVel, commandAngVel, maxAngAccel);
+      } else {
+        outputLinVel = 0;
+        outputAngVel = 0;
+      }
+      driveMsg.linear.x = outputLinVel;
+      driveMsg.angular.z = outputAngVel;
+      lastVelocityMsgTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
+      cmdVelPublisher.publish(driveMsg);
+    }
   });
 });
 
@@ -110,24 +135,107 @@ http.listen(8000, function () {
 
 rosnodejs
   .initNode("/rosnodejs")
-  .then((rosNode) => {
-    cmd_vel_publisher = rosNode.advertise(
+  .then(async (rosNode) => {
+
+    cmdVelPublisher = rosNode.advertise(
       "/cmd_vel",
-      geometry_msgs.Twist,
-      default_publisher_options
+      geometryMsgs.Twist,
+      defaultPublisherOptions
     );
-    argv.wait.forEach((wait_node) => {
-      let node_name = "/" + wait_node + "/get_loggers";
-      rosNode.waitForService(node_name).then(() => {
+
+    let privateNH = rosnodejs.getNodeHandle(rosNode.getNodeName());
+    maxLinVel = await getRosParam(privateNH, "max_lin_vel", 1.0);
+    maxAngVel = await getRosParam(privateNH, "max_ang_vel", 1.0);
+    maxLinAccel = await getRosParam(privateNH, "max_lin_accel", 2.0);
+    maxAngAccel = await getRosParam(privateNH, "max_ang_accel", 2.0);
+    eStopPresent = await getRosParam(privateNH, "e_stop", false);
+    let waitNodesStr = await getRosParam(privateNH, "wait_nodes", "");
+
+    if (eStopPresent) {
+      eStop = true;
+
+      eStopSubscriber = rosNode.subscribe(
+        "/e_stop",
+        stdMsgs.Bool,
+        eStopCallback
+      );
+
+      eStopTriggerClient = rosNode.serviceClient('/e_stop_trigger', stdSrvs.Trigger);
+      eStopResetClient = rosNode.serviceClient('/e_stop_reset', stdSrvs.Trigger);
+    }
+
+    let waitNodes = nodesStrToArray(waitNodesStr);
+    waitNodes.forEach((waitNode) => {
+      let nodeName = "/" + waitNode + "/get_loggers";
+      rosNode.waitForService(nodeName).then(() => {
         alerts.forEach((alert) => {
-          if (alert._id == wait_node) {
-            alert.update(wait_node, ALERT_OK, "Node " + node_name + " active");
+          if (alert._id == waitNode) {
+            alert.update(waitNode, ALERT_OK, "Node " + nodeName + " active");
           }
         });
-        update_alerts(alerts);
+        updateAlerts(alerts);
       });
     });
   })
   .catch((err) => {
     rosnodejs.log.error(err.stack);
   });
+
+async function getRosParam(nh, paramName, defaultValue = NaN) {
+  let paramValue = defaultValue;
+  await nh.hasParam(paramName).then(async (exists) => {
+    if (exists) {
+      await nh.getParam(paramName).then((value) => {
+        paramValue = value;
+      });
+    }
+  });
+  rosnodejs.log.info(paramName + ": " + paramValue);
+  return paramValue;
+}
+
+var eStopCallback = (msg) => {
+  eStop = msg.data;
+  io.emit("e_stop_state", msg.data);
+}
+
+async function handleCallTriggerService(name, service, timeout) {
+  try {
+    let nh = rosnodejs.nodeHandle;
+    if (await nh.waitForService(name, timeout)) {
+      rosnodejs.log.info("Calling " + name + " service");
+      let response = await service.call();
+      rosnodejs.log.info(name + " service response: " + JSON.stringify(response));
+      return response.success;
+    } else {
+      rosnodejs.log.error("Can't contact " + name + " service");
+      return false;
+    }
+  }
+  catch (error) {
+    rosnodejs.log.error(error);
+  }
+}
+
+function accelLimiting(currentVel, vel, maxAccel) {
+  let outputVel = 0;
+  let dt = 0.001;
+  let currentTime = rosnodejs.Time.toSeconds(rosnodejs.Time.now());
+  if (currentVel != 0) {
+    dt = currentTime - lastVelocityMsgTime
+  }
+
+  if (vel >= currentVel) {
+    outputVel = currentVel + maxAccel * dt;
+    if (outputVel > vel) {
+      outputVel = vel;
+    }
+  } else if (vel < currentVel) {
+    outputVel = currentVel - maxAccel * dt;
+    if (outputVel < vel) {
+      outputVel = vel;
+    }
+  }
+
+  return outputVel;
+}

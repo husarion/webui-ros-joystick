@@ -1,21 +1,16 @@
-var joyPosY;
-var beginJoyPosY = 0;
-var joyPosX;
+const JOYSTICK_COLOR = "#808080";
+const LED_GREEN_COLOR = "#508040";
+const LED_RED_COLOR = "#b02222";
+
 var beginJoyPosX = 0;
+var beginJoyPosY = 0;
 var manager;
 var lin;
 var ang;
-var joystick_timeout;
-var velocity_repeat_delay = 100; // [ms]
-var max_joy_pos = 0;
-var timerInstance;
-var resize_tout;
+var joystickTimeout;
+var velocityRepeatDelay = 100; // [ms]
 var socket;
-var alert_container;
-
-$(window).resize(function () {
-  setView();
-});
+var alertContainer;
 
 function removeJoystick() {
   joystickContainer = document.getElementById("joystick");
@@ -27,106 +22,112 @@ function removeJoystick() {
   }
 }
 
-function setView() {
-  removeJoystick();
-  joySize = 400;
-  if (joySize > $(window).height()) {
-    joySize = $(window).height();
-  }
-  if (joySize > $(window).width()) {
-    joySize = $(window).width();
-  }
-  max_joy_pos = joySize / 3;
-  createJoystick(
-    $(window).width() / 2,
-    $(window).height() / 2,
-    (joySize * 2) / 3
-  );
+function repeatVelCmd(vLin, vAng) {
+  moveAction(vLin, vAng);
+  joystickTimeout = setTimeout(function () {
+    repeatVelCmd(lin, ang);
+  }, velocityRepeatDelay);
 }
 
-function repeat_velcmd(v_lin, v_ang) {
-  moveAction(v_lin, v_ang);
-  joystick_timeout = setTimeout(function () {
-    repeat_velcmd(lin, ang);
-  }, velocity_repeat_delay);
-}
+function createJoystick(posX, posY, size) {
 
-function createJoystick(x, y, d) {
-  joystickContainer = document.getElementById("joystick");
+  let joystickContainer = document.querySelector('.joystickContainer')
+  joystickContainer.style.top = (posY - size / 2) + "px";
+  joystickContainer.style.left = (posX - size / 2) + "px";
+
+  let ledSize = size / 10;
+  let joystickSize = size - ledSize;
+
+  let joystick = document.getElementById("joystick");
+  joystick.style.width = joystickSize / 2 + "px";
+  joystick.style.height = joystickSize / 2 + "px";
+  joystick.style.top = size / 4 + "px";
+  joystick.style.left = size / 4 + "px";
+
+  let outerCircle = document.getElementById('outerCircle')
+  outerCircle.style.width = joystickSize + "px";
+  outerCircle.style.height = joystickSize + "px";
+  outerCircle.style.top = ledSize / 2 + "px";
+  outerCircle.style.left = ledSize / 2 + "px";
+  outerCircle.style.background = JOYSTICK_COLOR;
+
+  let innerCircle = document.getElementById('innerCircle')
+  innerCircle.style.width = joystickSize / 2 + "px";
+  innerCircle.style.height = joystickSize / 2 + "px";
+  innerCircle.style.top = size / 4 + ledSize / 4 + "px";
+  innerCircle.style.left = size / 4 + ledSize / 4 + "px";
+  innerCircle.style.background = JOYSTICK_COLOR;
+
+  let ledCircle = document.getElementById("ledCircle");
+  ledCircle.style.width = size + "px";
+  ledCircle.style.height = size + "px";
+  ledCircle.style.top = "0px";
+  ledCircle.style.left = "0px";
+  if (joystick.hidden) {
+    ledCircle.style.backgroundColor = LED_RED_COLOR;
+  }
 
   var options = {
-    zone: joystickContainer,
-    position: { left: x + "px", top: y + "px" },
-    mode: "static",
-    size: d,
-    color: "#222222",
-    restJoystick: true,
+    zone: joystick,
+    color: JOYSTICK_COLOR,
+    size: joystickSize,
+    fadeTime: 40,
   };
   manager = nipplejs.create(options);
+  manager.on("start", async function (evt, nipple) {
+    beginJoyPosX = nipple.position.x;
+    beginJoyPosY = nipple.position.y;
+    lin = 0;
+    ang = 0;
+
+    await new Promise(r => setTimeout(r, 30));
+    innerCircle.hidden = true;
+    outerCircle.hidden = true;
+    // move led
+    let ledPos = ledCircle.getBoundingClientRect();
+    let relativePosY = (nipple.position.y - size / 2) - ledPos.top;
+    let relativePosX = (nipple.position.x - size / 2) - ledPos.left;
+    ledCircle.style.top = relativePosY + "px";
+    ledCircle.style.left = relativePosX + "px";
+  })
   manager.on("move", function (evt, nipple) {
-    if (beginJoyPosX == 0 && beginJoyPosY == 0) {
-      beginJoyPosX = nipple.position.x;
-      beginJoyPosY = nipple.position.y;
-      lin = 0;
-      ang = 0;
-    } else {
-      let diffY = beginJoyPosY - nipple.position.y;
-      let maxY_diff = max_joy_pos - ($(window).height() / 2 - beginJoyPosY);
-      let minY_diff = max_joy_pos + ($(window).height() / 2 - beginJoyPosY);
-      let diffX = beginJoyPosX - nipple.position.x;
-      let maxX_diff = max_joy_pos - ($(window).width() / 2 - beginJoyPosX);
-      let minX_diff = max_joy_pos + ($(window).width() / 2 - beginJoyPosX);
-      if (diffY > 0) {
-        lin = (diffY * 1.3) / maxY_diff;
-      } else {
-        lin = (diffY * 1.3) / minY_diff;
-      }
-      if (diffX > 0) {
-        ang = (diffX * 1.0) / maxX_diff;
-      } else {
-        ang = (diffX * 1.0) / minX_diff;
-      }
-    }
-    clearTimeout(joystick_timeout);
+    relativePosX = beginJoyPosX - nipple.position.x;
+    relativePosY = beginJoyPosY - nipple.position.y;
+
+    ang = mapRange(relativePosX, - joystickSize / 2, joystickSize / 2, -1, 1);
+    lin = mapRange(relativePosY, - joystickSize / 2, joystickSize / 2, -1.1, 1.1);
+
+    if (lin > 1.0) lin = 1.0;
+    if (lin < -1.0) lin = -1.0;
+
+    clearTimeout(joystickTimeout);
     moveAction(lin, ang);
-    joystick_timeout = setTimeout(function () {
-      repeat_velcmd(lin, ang);
-    }, velocity_repeat_delay);
+    joystickTimeout = setTimeout(function () {
+      repeatVelCmd(lin, ang);
+    }, velocityRepeatDelay);
   });
-  manager.on("end", function () {
-    clearTimeout(joystick_timeout);
+  manager.on("end, destroyed", async function () {
+    clearTimeout(joystickTimeout);
     beginJoyPosX = 0;
     beginJoyPosY = 0;
-    moveAction(0, 0);
+    moveAction(0, 0, true);
+    await new Promise(r => setTimeout(r, 20));
+    innerCircle.hidden = false;
+    outerCircle.hidden = false;
+    ledCircle.style.top = "0px";
+    ledCircle.style.left = "0px";
   });
 }
 
-function moveAction(linear, angular) {
+function mapRange(value, inMin, inMax, outMin, outMax) {
+  return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+}
+
+function moveAction(linear, angular, stop = false) {
   let command = {
     lin: linear,
     ang: angular,
+    stop: stop,
   };
   socket.emit("drive_command", command);
 }
-
-window.onload = function () {
-  console.log("onLoad triggered");
-  alert_container = document.getElementById("alerts");
-  socket = io();
-  setView();
-  socket.on("alert_states", function (alert_state) {
-    let alerts_section = new String();
-    alert_state.forEach((alert) => {
-      if (alert._state == 2) {
-        alerts_section += '<div class="alert alert-warning" role="alert">';
-        alerts_section += alert._message;
-        alerts_section += "</div>";
-      } else if (alert._state == 3) {
-        alerts_section += '<div class="alert alert-danger" role = "alert">';
-        alerts_section += alert._message;
-        alerts_section += "</div>";
-      }
-    });
-    alert_container.innerHTML = alerts_section;
-  });
-};
