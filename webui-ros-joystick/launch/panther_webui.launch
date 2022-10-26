@@ -2,10 +2,11 @@
 
   <arg name="node_name" default="node_server" />
   <arg name="wait_nodes" default="" />
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
   <arg name="max_lin_vel" default="2.0" />
   <arg name="max_ang_vel" default="1.0" />
-  <arg name="max_lin_accel" default="2.0" />
-  <arg name="max_ang_accel" default="2.0" />
+  <arg name="max_lin_accel" default="20.0" />
+  <arg name="max_ang_accel" default="20.0" />
   <arg name="e_stop" default="false" />
 
   <group>

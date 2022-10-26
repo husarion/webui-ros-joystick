@@ -2,6 +2,7 @@
 
     <arg name="node_name" default="node_server" />
     <arg name="wait_nodes" default="" />
+    <arg name="cmd_vel_topic" default="/cmd_vel" />
     <arg name="max_lin_vel" default="1.0" />
     <arg name="max_ang_vel" default="1.0" />
     <arg name="max_lin_accel" default="2.0" />
@@ -9,12 +10,13 @@
     <arg name="e_stop" default="false" />
 
     <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen">
+        <param name="wait_nodes" value="$(arg wait_nodes)" />
+        <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)" />
         <param name="max_lin_vel" value="$(arg max_lin_vel)" />
         <param name="max_ang_vel" value="$(arg max_ang_vel)" />
         <param name="max_lin_accel" value="$(arg max_lin_accel)" />
         <param name="max_ang_accel" value="$(arg max_ang_accel)" />
         <param name="e_stop" value="$(arg e_stop)" />
-        <param name="wait_nodes" value="$(arg wait_nodes)" />
     </node>
 
 </launch>

@@ -137,31 +137,32 @@ rosnodejs
   .initNode("/rosnodejs")
   .then(async (rosNode) => {
 
-    cmdVelPublisher = rosNode.advertise(
-      "/cmd_vel",
-      geometryMsgs.Twist,
-      defaultPublisherOptions
-    );
-
     let privateNH = rosnodejs.getNodeHandle(rosNode.getNodeName());
+    let waitNodesStr = await getRosParam(privateNH, "wait_nodes", "");
+    let cmdVelTopic = await getRosParam(privateNH, "cmd_vel_topic", "/cmd_vel");
     maxLinVel = await getRosParam(privateNH, "max_lin_vel", 1.0);
     maxAngVel = await getRosParam(privateNH, "max_ang_vel", 1.0);
     maxLinAccel = await getRosParam(privateNH, "max_lin_accel", 2.0);
     maxAngAccel = await getRosParam(privateNH, "max_ang_accel", 2.0);
     eStopPresent = await getRosParam(privateNH, "e_stop", false);
-    let waitNodesStr = await getRosParam(privateNH, "wait_nodes", "");
+
+    cmdVelPublisher = rosNode.advertise(
+      cmdVelTopic,
+      geometryMsgs.Twist,
+      defaultPublisherOptions
+    );
 
     if (eStopPresent) {
       eStop = true;
 
       eStopSubscriber = rosNode.subscribe(
-        "/e_stop",
+        "e_stop",
         stdMsgs.Bool,
         eStopCallback
       );
 
-      eStopTriggerClient = rosNode.serviceClient('/e_stop_trigger', stdSrvs.Trigger);
-      eStopResetClient = rosNode.serviceClient('/e_stop_reset', stdSrvs.Trigger);
+      eStopTriggerClient = rosNode.serviceClient('e_stop_trigger', stdSrvs.Trigger);
+      eStopResetClient = rosNode.serviceClient('e_stop_reset', stdSrvs.Trigger);
     }
 
     let waitNodes = nodesStrToArray(waitNodesStr);
