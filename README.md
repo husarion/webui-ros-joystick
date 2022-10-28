@@ -25,12 +25,13 @@ The toolbar will appear when the `e_stop` param is *true*. Node will then subscr
 
 ### Parameters
 
+- `wait_nodes` *(**string**, default:'')*
+- `cmd_vel_topic` *(**string**, default:'/cmd_vel')*
 - `max_lin_vel` *(**float**, default:1.0)*
 - `max_ang_vel` *(**float**, default:1.0)*
 - `max_lin_accel` *(**float**, default:2.0)*
 - `max_ang_accel` *(**float**, default:2.0)*
 - `e_stop` *(**bool**, default:false)*
-- `wait_nodes` *(**string**, default:'')*
 
 
 ## Docker image
