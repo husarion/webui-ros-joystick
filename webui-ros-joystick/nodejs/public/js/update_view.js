@@ -1,5 +1,6 @@
 let offset = 0;
 let createEStop = false;
+let eStopState = true;
 
 window.onload = function () {
   console.log("onLoad triggered");
@@ -48,14 +49,16 @@ window.onload = function () {
         let buttonInput = document.getElementById("eStopInput");
 
         if (!button.disabled) {
-          if (!state) {
+          if (!state && eStopState != state) {
+            eStopState = state;
             setButton(button, buttonInput, "OFF");
             ledCircle.style.backgroundColor = LED_GREEN_COLOR;
-            joystick.hidden = false;
-          } else {
+            setView();
+          } else if (eStopState != state) {
+            eStopState = state;
             setButton(button, buttonInput, "ON");
             ledCircle.style.backgroundColor = LED_RED_COLOR;
-            joystick.hidden = true;
+            removeJoystick();
           }
         }
       });

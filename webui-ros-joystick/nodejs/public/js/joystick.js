@@ -39,6 +39,7 @@ function createJoystick(posX, posY, size) {
   let joystickSize = size - ledSize;
 
   let joystick = document.getElementById("joystick");
+  joystick.hidden = false;
   joystick.style.width = joystickSize / 2 + "px";
   joystick.style.height = joystickSize / 2 + "px";
   joystick.style.top = size / 4 + "px";
@@ -63,7 +64,10 @@ function createJoystick(posX, posY, size) {
   ledCircle.style.height = size + "px";
   ledCircle.style.top = "0px";
   ledCircle.style.left = "0px";
-  if (joystick.hidden) {
+  if (!eStopState) {
+    ledCircle.style.backgroundColor = LED_GREEN_COLOR;
+  }
+  else {
     ledCircle.style.backgroundColor = LED_RED_COLOR;
   }
 
