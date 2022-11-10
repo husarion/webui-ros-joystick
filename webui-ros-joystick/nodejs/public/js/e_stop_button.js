@@ -24,7 +24,7 @@ function createButton(posX, posY, size) {
   button.style.left = -size / 2 + "px";
   button.style.top = -size / 2 + "px";
   button.style.borderStyle = "solid";
-  button.style.fontSize = size / 5 + "px";
+  button.style.fontSize = size / 5.2 + "px";
   button.style.color = BUTTON_TEXT_COLOR;
   button.style.outline = 0;
   if (button.hidden) {
