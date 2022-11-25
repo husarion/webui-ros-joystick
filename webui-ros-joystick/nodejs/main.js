@@ -97,14 +97,14 @@ io.on("connection", function (socket) {
   socket.emit("create_e_stop", eStopPresent);
 
   socket.on("e_stop_trigger", async (callback) => {
-    let success = await handleCallTriggerService('/e_stop_trigger', eStopTriggerClient, 5000);
+    let success = await handleCallTriggerService('e_stop_trigger', eStopTriggerClient, 5000);
     callback({
       success: success
     });
   });
 
   socket.on("e_stop_reset", async (callback) => {
-    let success = await handleCallTriggerService('/e_stop_reset', eStopResetClient, 5000);
+    let success = await handleCallTriggerService('e_stop_reset', eStopResetClient, 5000);
     callback({
       success: success
     });
