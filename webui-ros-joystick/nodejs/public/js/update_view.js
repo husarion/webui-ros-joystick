@@ -44,6 +44,7 @@ window.onload = function () {
     let ledCircle = document.getElementById("ledCircle");
     if (createEStop) {
       setView();
+      removeJoystick();
       socket.on("e_stop_state", function (state) {
         let button = document.getElementById("eStopButton");
         let buttonInput = document.getElementById("eStopInput");
