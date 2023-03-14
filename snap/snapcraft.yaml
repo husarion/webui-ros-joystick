@@ -1,0 +1,40 @@
+name: webui-ros-joystick-fork
+base: core20
+version: '0.1'
+summary: simple web-based joystick for ROS devices
+description: |
+  Simple web-based joystick for ROS devices
+
+source-code: https://github.com/husarion/webui-ros-joystick
+license: Apache-2.0
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+
+parts:
+  webui-ros-joystick:
+    plugin: catkin
+    source: https://github.com/giusebar/webui-ros-joystick.git
+    source-branch: add_package_dependencies
+    build-packages:
+      - npm
+    stage-packages:
+      - ros-noetic-roslaunch
+    override-build: |
+      snapcraftctl build
+      npm install --prefix ${SNAPCRAFT_PART_INSTALL} rosnodejs@3.0.2 socket.io@2.4.1 yargs@16.2.0 express@4.17.1
+
+  node:
+    plugin: nil
+    stage-snaps:
+      - node/18/stable
+    stage-packages:
+      - libc6
+
+apps:
+  webui-ros-joystick:
+    command: opt/ros/noetic/bin/roslaunch webui-ros-joystick webui.launch
+    plugs: [network, network-bind]
+    extensions: [ros1-noetic]
+    environment:
+      ROS_HOME: $SNAP_USER_DATA/ros
