@@ -8,14 +8,19 @@
   <arg name="max_ang_vel" default="1.0" />
   <arg name="max_lin_accel" default="20.0" />
   <arg name="max_ang_accel" default="20.0" />
-  <arg name="e_stop" default="false" />
+  <arg name="e_stop" default="true" />
 
   <group ns="$(arg namespace)">
     <remap from="e_stop_trigger" to="hardware/e_stop_trigger" if="$(arg e_stop)" />
     <remap from="e_stop_reset" to="hardware/e_stop_reset" if="$(arg e_stop)" />
-    <remap from="e_stop" to="hardware/e_stop" if="$(arg e_stop)" />
+    <remap from="e_stop_in" to="hardware/e_stop" if="$(arg e_stop)" />
+    <remap from="e_stop_out" to="webui/e_stop_republished" if="$(arg e_stop)" />
+    <remap from="e_stop" to="webui/e_stop_republished" if="$(arg e_stop)" />
+
+    <node pkg="webui-ros-joystick" type="e_stop_republisher.py" name="e_stop_republisher" output="screen" />
 
     <include file="$(find webui-ros-joystick)/launch/webui.launch" pass_all_args="true" />
+
   </group>
 
 </launch>
