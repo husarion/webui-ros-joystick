@@ -1,6 +1,9 @@
 name: Build/Publish ROS Docker Image
 
 on:
+  push:
+    branches:
+      - 'update-actions'
   workflow_dispatch:
     inputs:
       build_type:
@@ -29,9 +32,6 @@ on:
     types:
       - closed
       - opened
-  push:
-    branches:
-      - "update-actions"
 
 jobs:
   build:
