@@ -3,35 +3,35 @@ name: Build/Publish ROS Docker Image
 on:
   push:
     branches:
-      - 'update-actions'
-  workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Is it a "development" or a "stable" release?'
-        required: true
-        default: "development"
-        type: choice
-        options:
-          - development
-          - stable
-      target_distro:
-        description: 'In case of "stable" release specify the ROS distro of the existing docker image (eg. humble)'
-        type: string
-        default: "ardent"
-      target_release:
-        description: 'In case of "stable" release specify the version of the existing docker image (eg. 1.0.12)'
-        type: string
-        default: "0.0.0"
-      target_date:
-        description: 'In case of "stable" release specify the date of the existing docker image in format YYYYMMDD (eg. 20220124)'
-        type: string
-        default: "20131206"
-  repository_dispatch:
-    types: [rebuild]
-  pull_request:
-    types:
-      - closed
-      - opened
+      - "update-actions"
+  # workflow_dispatch:
+  #   inputs:
+  #     build_type:
+  #       description: 'Is it a "development" or a "stable" release?'
+  #       required: true
+  #       default: "development"
+  #       type: choice
+  #       options:
+  #         - development
+  #         - stable
+  #     target_distro:
+  #       description: 'In case of "stable" release specify the ROS distro of the existing docker image (eg. humble)'
+  #       type: string
+  #       default: "ardent"
+  #     target_release:
+  #       description: 'In case of "stable" release specify the version of the existing docker image (eg. 1.0.12)'
+  #       type: string
+  #       default: "0.0.0"
+  #     target_date:
+  #       description: 'In case of "stable" release specify the date of the existing docker image in format YYYYMMDD (eg. 20220124)'
+  #       type: string
+  #       default: "20131206"
+  # repository_dispatch:
+  #   types: [rebuild]
+  # pull_request:
+  #   types:
+  #     - closed
+  #     - opened
 
 jobs:
   build:
