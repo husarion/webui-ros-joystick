@@ -46,6 +46,8 @@ WORKDIR /ros_ws
 
 COPY --from=pkg-builder /ros_ws /ros_ws/
 
+RUN echo $(cat /ros_ws/src/webui-ros-joystick/package.xml | grep '<version>' | sed -r 's/.*<version>([0-9]+.[0-9]+.[0-9]+)<\/version>/\1/g') > /version.txt
+
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc && \
     echo "source /ros_ws/devel/setup.bash" >> ~/.bashrc
 
