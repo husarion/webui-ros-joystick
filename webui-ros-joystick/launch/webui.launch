@@ -9,7 +9,7 @@
     <arg name="max_ang_accel" default="2.0" />
     <arg name="e_stop" default="false" />
 
-    <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen">
+    <node pkg="webui-ros-joystick" type="node_server.sh" name="$(arg node_name)" output="screen" required="true">
         <param name="wait_nodes" value="$(arg wait_nodes)" />
         <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)" />
         <param name="max_lin_vel" value="$(arg max_lin_vel)" />
